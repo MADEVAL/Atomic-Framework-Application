@@ -1,0 +1,42 @@
+# Environment
+.env
+.env.backup
+.env.production
+
+# Composer
+/vendor/
+
+# Storage - generated data
+storage/logs/*.log
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing/*
+storage/framework/fonts/*
+!storage/framework/.gitkeep
+!storage/framework/cache/.gitkeep
+!storage/framework/sessions/.gitkeep
+!storage/framework/views/.gitkeep
+!storage/framework/testing/.gitkeep
+!storage/framework/fonts/.gitkeep
+
+# Uploaded files
+public/uploads/*
+!public/uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PHP
+*.phar
+
+# Node (if frontend build tools used)
+node_modules/

@@ -1,0 +1,23 @@
+{
+  "name": "my-app/atomic-app",
+  "description": "Atomic Framework Application",
+  "type": "project",
+  "require": {
+    "php": ">=8.1",
+    "atomic/framework": "*"
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../package"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true
+  }
+}
