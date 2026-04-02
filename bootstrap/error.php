@@ -4,7 +4,7 @@ if (!defined('ATOMIC_START')) { exit; }
 
 define('ATOMIC_PHP_ERRORS_CUSTOM', false);
 
-$baseLogFile = ATOMIC_ENGINE . 'storage' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'php_errors.log';
+$baseLogFile = ATOMIC_DIR . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'php_errors.log';
 $logDir = dirname($baseLogFile);
 
 if (!is_dir($logDir)) {
