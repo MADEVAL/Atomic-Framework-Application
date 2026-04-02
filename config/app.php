@@ -30,7 +30,7 @@ return [
         'temp'                => 'storage/framework/cache/data/',
         'logs'                => 'storage/logs/',
         'locales'             => 'engine/Atomic/Lang/locales/',
-        'fonts'               => 'storage/framework/fonts/',
+        'fonts'               => 'engine/Atomic/Files/fonts/',
         'fonts_temp'          => 'storage/framework/cache/fonts/',
         'migrations'          => 'database/migrations/',
         'migrations_core'     => 'engine/Atomic/Core/Database/Migrations/',
