@@ -3,52 +3,139 @@ if (!defined('ATOMIC_START')) exit;
 
 get_header();
 ?>
-<section class="atomic-hero" style="text-align:center;padding:5rem 1rem;">
-    <div class="atomic-container">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:80px;height:80px;margin-bottom:1.5rem;">
-            <defs><radialGradient id="g2" cx="50%" cy="50%" r="50%"><stop offset="0%" style="stop-color:#7eb8ff"/><stop offset="100%" style="stop-color:#4f9cf7"/></radialGradient></defs>
-            <circle cx="50" cy="50" r="12" fill="#4f9cf7"/>
-            <ellipse cx="50" cy="50" rx="45" ry="18" fill="none" stroke="url(#g2)" stroke-width="3" transform="rotate(0 50 50)" opacity="0.7"/>
-            <ellipse cx="50" cy="50" rx="45" ry="18" fill="none" stroke="url(#g2)" stroke-width="3" transform="rotate(60 50 50)" opacity="0.5"/>
-            <ellipse cx="50" cy="50" rx="45" ry="18" fill="none" stroke="url(#g2)" stroke-width="3" transform="rotate(120 50 50)" opacity="0.3"/>
-        </svg>
-        <h1 class="atomic-title">Atomic Framework</h1>
-        <p class="atomic-subtitle" style="color:var(--atomic-text-secondary, #666);max-width:600px;margin:1rem auto;">
-            Fast &amp; minimal PHP framework built on Fat-Free. Authentication, middleware, plugins, i18n &mdash; all included.
-        </p>
-        <div style="margin-top:0.75rem;">
-            <span style="display:inline-block;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.8rem;background:var(--atomic-bg-secondary, #f0f4ff);color:var(--atomic-primary, #4f9cf7);">
-                v<?php echo ATOMIC_VERSION; ?>
-            </span>
-        </div>
-        <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-            <a href="/register" class="atomic-btn atomic-btn-primary" style="padding:0.75rem 2rem;background:#4f9cf7;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Get Started</a>
-            <a href="/login" style="padding:0.75rem 2rem;border:1px solid var(--atomic-border, #ddd);border-radius:8px;text-decoration:none;color:var(--atomic-text-primary, #333);font-weight:500;">Login</a>
-        </div>
-    </div>
+<section class="atomic-hero">
+	<div class="atomic-container">
+		<div class="atomic-hero-content">
+			<img src="<?php echo PUBLIC_URL;?>/assets/img/apple-touch-icon.png" alt="Atomic Framework Logo" class="atomic-logo">
+			<h1 class="atomic-title">Atomic Framework</h1>
+			<p class="atomic-subtitle">Fast, Lightweight & Scalable PHP Framework</p>
+			<div class="atomic-cta">
+				<a href="#features" class="atomic-btn atomic-btn-primary">Explore Features</a>
+				<a href="https://github.com/atomic-framework" class="atomic-btn atomic-btn-secondary">View on GitHub</a>
+			</div>
+		</div>
+	</div>
 </section>
 
-<section style="padding:3rem 1rem;">
-    <div class="atomic-container" style="max-width:900px;margin:0 auto;">
-        <h2 style="text-align:center;margin-bottom:2rem;">Built for Modern Development</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:1.5rem;">
-            <div style="padding:1.5rem;border:1px solid var(--atomic-border, #e0e0e0);border-radius:12px;">
-                <div style="font-size:1.5rem;margin-bottom:0.5rem;">&#9889;</div>
-                <h3 style="margin-bottom:0.5rem;">Lightning Fast</h3>
-                <p style="color:var(--atomic-text-secondary, #666);font-size:0.9rem;">Built on Fat-Free core with advanced caching: Memcached, Redis, file-based.</p>
-            </div>
-            <div style="padding:1.5rem;border:1px solid var(--atomic-border, #e0e0e0);border-radius:12px;">
-                <div style="font-size:1.5rem;margin-bottom:0.5rem;">&#128274;</div>
-                <h3 style="margin-bottom:0.5rem;">Secure Auth</h3>
-                <p style="color:var(--atomic-text-secondary, #666);font-size:0.9rem;">Registration, login, roles, guards, and middleware out of the box.</p>
-            </div>
-            <div style="padding:1.5rem;border:1px solid var(--atomic-border, #e0e0e0);border-radius:12px;">
-                <div style="font-size:1.5rem;margin-bottom:0.5rem;">&#127760;</div>
-                <h3 style="margin-bottom:0.5rem;">i18n Ready</h3>
-                <p style="color:var(--atomic-text-secondary, #666);font-size:0.9rem;">Multi-language support with URL prefixes, locale detection, and translation files.</p>
-            </div>
-        </div>
-    </div>
+<section class="atomic-content" id="features">
+	<div class="atomic-container">
+		<h2 class="atomic-section-title">Built for Modern Development</h2>
+		<p class="atomic-section-subtitle">Everything you need to build fast and reliable web applications</p>
+
+		<div class="atomic-description">
+Atomic is a lightweight yet powerful PHP framework built on the Fat-Free core, designed for developers who value speed, simplicity, and scalability. It lets you build modern web applications without the overhead - combining an elegant architecture with production-ready features out of the box.
+Enjoy a clean plugin system, expressive ORM with validation, and an event-driven core with hooks and queues. Atomic handles caching through Redis, Memcached, databases, or files - giving you performance that scales effortlessly. Configuration is flexible and familiar: use PHP files or .env variables to set up your app in seconds.
+Atomic also includes a full theme and resource manager, middleware stack, multilingual support, and CLI tools to accelerate your workflow. Built-in telemetry, debugging, and logging keep your development smooth and transparent.
+With support for SQL and MongoDB, database migrations, transient storage, nonces, secure authentication, and CSRF protection - Atomic puts clean architecture and security first. You'll also find ready-to-use systems for emails, notifications, Telegram bots, AI integrations, file operations, and even PDF, XLS, and CSV generation.
+Focus on your features - Atomic takes care of the complexity.
+		</div>
+
+		<div class="atomic-features">
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">⚡</div>
+				<h3 class="atomic-feature-title">Lightning Fast Performance</h3>
+				<p class="atomic-feature-text">Built on Fat-Free core with advanced caching supporting Memcached, Redis, databases, and file storage. Optimized for peak performance in production environments.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">🎯</div>
+				<h3 class="atomic-feature-title">Event-Driven Architecture</h3>
+				<p class="atomic-feature-text">Powerful event system with hooks and queues for building reactive applications. Decouple components and build scalable, maintainable solutions.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">🔌</div>
+				<h3 class="atomic-feature-title">Plugin & Middleware System</h3>
+				<p class="atomic-feature-text">Extensible plugin architecture and full-featured middleware pipeline. Add functionality without complexity and control request flow with precision.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">🗄️</div>
+				<h3 class="atomic-feature-title">Universal Database Support</h3>
+				<p class="atomic-feature-text">Built-in ORM with data validation supporting SQL databases and MongoDB. Includes migration system for seamless database version control.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">⚙️</div>
+				<h3 class="atomic-feature-title">Flexible Configuration</h3>
+				<p class="atomic-feature-text">Configure via PHP files or .env variables. Environment-specific settings with support for transients and nonces for secure data handling.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">🎨</div>
+				<h3 class="atomic-feature-title">Theme System & Resources</h3>
+				<p class="atomic-feature-text">Comprehensive theme support with built-in resource manager. Multi-language capabilities for building globally accessible applications.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">🛡️</div>
+				<h3 class="atomic-feature-title">Security First</h3>
+				<p class="atomic-feature-text">CSRF protection, robust authentication, nonces, and security best practices built-in. Your applications are secure from the ground up.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">🔧</div>
+				<h3 class="atomic-feature-title">Powerful CLI Tools</h3>
+				<p class="atomic-feature-text">Command-line interface for rapid development tasks. Generate boilerplate, run migrations, and manage your application from the terminal.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">🔍</div>
+				<h3 class="atomic-feature-title">Telemetry & Debugging</h3>
+				<p class="atomic-feature-text">Built-in Telemetry debugger with comprehensive logging and dump utilities. Identify and resolve issues quickly during development.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">📧</div>
+				<h3 class="atomic-feature-title">Communication Tools</h3>
+				<p class="atomic-feature-text">Email and notification systems with Telegram integration. Keep users informed across multiple channels effortlessly.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">🤖</div>
+				<h3 class="atomic-feature-title">AI Integration</h3>
+				<p class="atomic-feature-text">Base connectors for popular AI services. Integrate machine learning and AI capabilities into your applications with ease.</p>
+			</div>
+
+			<div class="atomic-feature-card">
+				<div class="atomic-feature-icon">📄</div>
+				<h3 class="atomic-feature-title">File Generation & Processing</h3>
+				<p class="atomic-feature-text">Generate PDF, Excel, and CSV files. Full filesystem operations support for complete file management capabilities.</p>
+			</div>
+		</div>
+
+		<h2 class="atomic-section-title">Complete Technology Stack</h2>
+		<div class="atomic-tech-stack">
+			<span class="atomic-tech-badge">PHP 8+</span>
+			<span class="atomic-tech-badge">Fat-Free Framework</span>
+			<span class="atomic-tech-badge">ORM & Migrations</span>
+			<span class="atomic-tech-badge">SQL & MongoDB</span>
+			<span class="atomic-tech-badge">Memcached & Redis</span>
+			<span class="atomic-tech-badge">Event System</span>
+			<span class="atomic-tech-badge">Hooks & Queues</span>
+			<span class="atomic-tech-badge">Middleware</span>
+			<span class="atomic-tech-badge">Plugin System</span>
+			<span class="atomic-tech-badge">Theme Manager</span>
+			<span class="atomic-tech-badge">Multi-Language</span>
+			<span class="atomic-tech-badge">CLI Tools</span>
+			<span class="atomic-tech-badge">Telemetry Debug</span>
+			<span class="atomic-tech-badge">Authentication</span>
+			<span class="atomic-tech-badge">CSRF Protection</span>
+			<span class="atomic-tech-badge">Transients</span>
+			<span class="atomic-tech-badge">Email System</span>
+			<span class="atomic-tech-badge">Telegram API</span>
+			<span class="atomic-tech-badge">AI Connectors</span>
+			<span class="atomic-tech-badge">PDF Generation</span>
+			<span class="atomic-tech-badge">Excel & CSV</span>
+			<span class="atomic-tech-badge">Filesystem API</span>
+			<span class="atomic-tech-badge">Secure Nonces</span>
+			<span class="atomic-tech-badge">Notification System</span>
+			<span class="atomic-tech-badge">.env</span>
+			<span class="atomic-tech-badge">Logging & Debugging</span>
+			<span class="atomic-tech-badge">Shortcodes</span>
+			<span class="atomic-tech-badge">Validation</span>
+		</div>
+	</div>
 </section>
 <?php
 get_footer();

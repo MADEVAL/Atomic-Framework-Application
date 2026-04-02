@@ -1,16 +1,36 @@
 <?php
-if (!defined('ATOMIC_START')) exit;
+if (!defined( 'ATOMIC_START' ) ) exit;
 ?>
-<footer class="atomic-footer" style="text-align:center;padding:2rem 0;margin-top:3rem;border-top:1px solid var(--atomic-border, #e0e0e0);">
-    <div class="atomic-container">
-        <div style="font-weight:600;color:var(--atomic-text-primary, #1a1a2e);">Atomic Framework</div>
-        <div style="font-size:0.85rem;color:var(--atomic-text-secondary, #888);margin-top:0.25rem;">Power in minimalism</div>
-        <div style="font-size:0.8rem;color:var(--atomic-text-secondary, #aaa);margin-top:1rem;">
-            &copy; <?php echo date('Y'); ?> Atomic Framework
-        </div>
-    </div>
-</footer>
 
-<?php print_scripts('footer'); ?>
+<!-- Footer -->
+<footer class="atomic-footer">
+	<?php if (!is_page('/login') && !is_page('/register')): ?>
+	<div class="atomic-container">
+		<div class="atomic-footer-brand">Atomic Framework</div>
+		<div class="atomic-footer-tagline">Power in minimalism</div>
+		
+		<div class="atomic-footer-links">
+			<a href="#features" class="atomic-footer-link">Features</a>
+			<a href="https://github.com/atomic-framework" class="atomic-footer-link">GitHub</a>
+			<a href="/docs" class="atomic-footer-link">Documentation</a>
+			<a href="/community" class="atomic-footer-link">Community</a>
+		</div>
+		
+		<div class="atomic-footer-divider"></div>
+		
+		<div class="atomic-footer-copy">
+			© 2025 Atomic Framework. All rights reserved.
+		</div>
+		<div class="atomic-footer-developer">
+			Developed by <a href="https://globus.studio" target="_blank">GLOBUS.studio</a>
+		</div>
+	</div>
+	<?php endif; ?>
+</footer>
+<!-- Footer -->
+
+<?php
+    print_scripts('footer');
+?>
 </body>
 </html>
