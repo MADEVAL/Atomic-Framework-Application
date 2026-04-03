@@ -8,10 +8,22 @@ use Engine\Atomic\App\Controller;
 use Engine\Atomic\Auth\Auth;
 use Engine\Atomic\Core\Guard;
 use Engine\Atomic\Core\Response;
+use Engine\Atomic\Core\App;
+use Engine\Atomic\Theme\Theme;
 use App\Http\Models\User;
 
 class AuthController extends Controller
 {
+    public function __construct()
+    {
+        parent::__construct();
+        $app = App::instance();
+        if (!$app->get('__theme_booted')) {
+            Theme::instance();
+            $app->set('__theme_booted', true);
+        }
+    }
+
     public function login(\Base $f3): void
     {
         if (Guard::is_authenticated()) {

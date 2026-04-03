@@ -5,9 +5,21 @@ namespace App\Http\Controllers;
 if (!defined('ATOMIC_START')) exit;
 
 use Engine\Atomic\App\Controller;
+use Engine\Atomic\Core\App;
+use Engine\Atomic\Theme\Theme;
 
 class HomeController extends Controller
 {
+    public function __construct()
+    {
+        parent::__construct();
+        $app = App::instance();
+        if (!$app->get('__theme_booted')) {
+            Theme::instance();
+            $app->set('__theme_booted', true);
+        }
+    }
+
     public function index(\Base $f3): void
     {
         $f3->set('PAGE.title', 'Atomic Framework');
