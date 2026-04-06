@@ -1,0 +1,697 @@
+:root {
+    /* Surface Colors */
+    --atomic-bg: #0b1020;          /* Overall background */
+    --atomic-bg-alt: #11182a;      /* Hover/subtle raised */
+    --atomic-card: #141a2b;        /* Cards & panels */
+    --atomic-header: #1b2235;      /* Header/toolbars */
+    --atomic-border: #27324a;      /* Primary border */
+    --atomic-hover-bg: var(--atomic-bg-alt);
+
+    /* Text Colors */
+    --atomic-text: #e6ecf5;
+    --atomic-text-muted: #9aa8c2;
+    --atomic-text-faint: #5f6c85;
+
+    /* Accent Colors */
+    --atomic-accent: #5965d9;
+    --atomic-accent-hover: #6b79e8;
+    --atomic-focus-ring: #8291ff;
+
+    /* Status Colors (Semantic) */
+    --atomic-status-queued-bg: #1d2e4d;
+    --atomic-status-queued-fg: #4d89ff;
+    --atomic-status-running-bg: #3a2d12;
+    --atomic-status-running-fg: #d7a84a;
+    --atomic-status-success-bg: #123b2a;
+    --atomic-status-success-fg: #36c986;
+    --atomic-status-failed-bg: #3e1822;
+    --atomic-status-failed-fg: #e05268;
+
+    /* Code & JSON Syntax */
+    --atomic-code-bg: #1e2536;
+    --atomic-code-border: #2c3a55;
+    --atomic-json-key: #82b2ff;
+    --atomic-json-string: #b2c9ff;
+    --atomic-json-number: #82b2ff;
+    --atomic-json-boolean: #ddb16b;
+    --atomic-json-null: #e05268;
+    --atomic-json-punc: #eef3fa;
+
+    /* Component Colors */
+    --atomic-chip-bg: #27324a;
+    --atomic-chip-border: #33415c;
+    --atomic-chip-text: var(--atomic-text-muted);
+    --atomic-chip-empty-bg: #202a3b;
+
+    /* Button Colors */
+    --atomic-btn-bg: #1c2435;
+    --atomic-btn-bg-hover: #242f44;
+    --atomic-btn-border: var(--atomic-border);
+    --atomic-btn-text: var(--atomic-text-muted);
+}
+/* ============================================
+   BASIC ELEMENTS & GLOBAL STYLES
+   ============================================ */
+
+/* Global Base Styles */
+html, body {
+    background-color: var(--atomic-bg);
+    color: var(--atomic-text);
+    font-family: "Lato", sans-serif;
+}
+
+/* Button Base Styles (W3.CSS Compatible) */
+.atomic-btn,
+.w3-button {
+    background: var(--atomic-btn-bg) !important; /* !keep-w3 */
+    border: 1px solid var(--atomic-btn-border) !important; /* !keep-w3 */
+    color: var(--atomic-btn-text) !important; /* !keep-w3 */
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.atomic-btn:hover,
+.w3-button:hover {
+    background: var(--atomic-btn-bg-hover) !important; /* !keep-w3 hover override */
+    color: var(--atomic-text) !important; /* !keep-w3 hover override */
+}
+
+.atomic-btn.action,
+.w3-button.w3-blue {
+    background: var(--atomic-accent) !important; /* !keep-w3 accent variant */
+    border-color: var(--atomic-accent) !important; /* !keep-w3 accent variant */
+    color: #ffffff !important; /* !keep-w3 accent text */
+}
+
+.atomic-btn.action:hover,
+.w3-button.w3-blue:hover {
+    background: var(--atomic-accent-hover) !important; /* !keep-w3 accent hover */
+}
+
+.atomic-btn.ghost {
+    background: transparent;
+}
+
+/* Focus States */
+.atomic-btn:focus-visible,
+.atomic-copy-btn:focus-visible,
+.filter-input:focus-visible,
+.filter-select:focus-visible {
+    outline: 2px solid var(--atomic-focus-ring);
+    outline-offset: 2px;
+}
+
+/* Form Elements */
+.filter-input,
+.filter-select {
+    background: var(--atomic-bg-alt);
+    border: 1px solid var(--atomic-border);
+    color: var(--atomic-text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    border-color: var(--atomic-accent);
+    box-shadow: 0 0 0 2px rgba(89,101,217,0.35);
+    outline: none;
+}
+
+.filter-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: var(--atomic-text-faint);
+    font-weight: bold;
+}
+
+/* ============================================
+   CUSTOM ATOMIC COMPONENTS
+   ============================================ */
+
+/* Layout Components (W3.CSS Compatible) */
+.atomic-main-container {
+    background-color: var(--atomic-bg);
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+.atomic-card,
+.w3-card {
+    background-color: var(--atomic-card);
+    border: 1px solid var(--atomic-border);
+    box-shadow: 0 4px 10px 0 rgba(0,0,0,0.4), 0 4px 20px 0 rgba(0,0,0,0.3);
+    border-radius: 6px;
+}
+
+.atomic-header {
+    background-color: var(--atomic-header);
+    border-bottom: 1px solid var(--atomic-border);
+}
+
+.atomic-content-bg {
+    background-color: var(--atomic-bg);
+}
+
+/* Navigation Components */
+.atomic-nav {
+    background-color: var(--atomic-header);
+    border-bottom: 1px solid var(--atomic-border);
+}
+
+.atomic-nav-tab {
+    background-color: transparent;
+    color: var(--atomic-text-muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.atomic-nav-tab.atomic-active {
+    color: var(--atomic-text);
+    border-bottom-color: var(--atomic-accent);
+}
+
+/* Header Layout */
+.atomic-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 12px 8px;
+}
+
+.atomic-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--atomic-text);
+}
+
+.atomic-header-favicon {
+    width: 28px;
+    height: 28px;
+}
+
+.atomic-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.atomic-header-counters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.atomic-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Toolbar Components */
+.atomic-toolbar-flex {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Status Badges */
+.atomic-status-badge {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.atomic-status-queued { background-color: var(--atomic-status-queued-bg); color: var(--atomic-status-queued-fg); }
+.atomic-status-running { background-color: var(--atomic-status-running-bg); color: var(--atomic-status-running-fg); }
+.atomic-status-success { background-color: var(--atomic-status-success-bg); color: var(--atomic-status-success-fg); }
+.atomic-status-failed { background-color: var(--atomic-status-failed-bg); color: var(--atomic-status-failed-fg); }
+
+/* Chip Components */
+.atomic-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--atomic-chip-bg);
+    color: var(--atomic-chip-text);
+    border: 1px solid var(--atomic-chip-border);
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.atomic-chip i { font-size: 12px; }
+.atomic-chip-failed { background: var(--atomic-status-failed-bg); color: var(--atomic-status-failed-fg); }
+.atomic-chip-queued { background: var(--atomic-status-queued-bg); color: var(--atomic-status-queued-fg); }
+.atomic-chip-running { background: var(--atomic-status-running-bg); color: var(--atomic-status-running-fg); }
+.atomic-chip-success { background: var(--atomic-status-success-bg); color: var(--atomic-status-success-fg); }
+.atomic-chip-empty { background: var(--atomic-chip-empty-bg); color: var(--atomic-text-muted); }
+
+.atomic-total {
+    color: var(--atomic-text-muted);
+    font-size: 12px;
+    padding-left: 4px;
+    align-self: center;
+}
+
+/* Job List Components */
+.atomic-job-list {
+    background-color: var(--atomic-card);
+    border: 1px solid var(--atomic-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.atomic-job-header {
+    background-color: var(--atomic-card);
+    border-bottom: 1px solid var(--atomic-border);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.atomic-job-header:hover {
+    background: var(--atomic-bg-alt) !important;
+}
+
+.atomic-job-header:last-child {
+    border-bottom: none;
+}
+
+.atomic-job-header.open {
+    background: var(--atomic-bg-alt);
+}
+
+.atomic-job-details-panel {
+    background-color: var(--atomic-bg);
+    border-top: 1px solid var(--atomic-border);
+}
+
+/* Job Row Layout */
+.atomic-job-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 10px 16px;
+}
+
+.atomic-job-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+
+.atomic-job-icon-wrapper {
+    flex: 0 0 auto;
+    display: flex;
+}
+
+.atomic-job-text {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Job Icons - Consistent Size */
+.atomic-job-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.atomic-icon-queued { background-color: var(--atomic-status-queued-bg); color: var(--atomic-status-queued-fg); }
+.atomic-icon-running { background-color: var(--atomic-status-running-bg); color: var(--atomic-status-running-fg); }
+.atomic-icon-success { background-color: var(--atomic-status-success-bg); color: var(--atomic-status-success-fg); }
+.atomic-icon-failed { background-color: var(--atomic-status-failed-bg); color: var(--atomic-status-failed-fg); }
+
+/* Job Content */
+.atomic-job-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 2px 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--atomic-text);
+}
+
+.atomic-job-meta {
+    margin-top: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--atomic-text-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.atomic-job-meta .meta-sep {
+    opacity: 0.5;
+}
+
+.atomic-job-id {
+    display: none; /* Hidden as per requirements */
+}
+
+/* Expand Arrow */
+.atomic-job-expand-icon {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    color: var(--atomic-text-muted);
+    transition: transform 0.25s, color 0.25s;
+}
+
+.atomic-job-expand-icon i {
+    transition: transform 0.2s ease-in-out;
+    font-size: 14px;
+}
+
+.atomic-job-header:hover .atomic-job-expand-icon {
+    color: var(--atomic-accent);
+}
+
+.atomic-job-header.open .atomic-job-expand-icon {
+    transform: rotate(90deg);
+    color: var(--atomic-accent);
+}
+
+/* Copy Button */
+.atomic-copy-btn {
+    background: var(--atomic-btn-bg);
+    border: 1px solid var(--atomic-btn-border);
+    color: var(--atomic-btn-text);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.atomic-copy-btn:hover {
+    background: var(--atomic-btn-bg-hover);
+    color: var(--atomic-text);
+}
+
+.atomic-copy-btn.copied {
+    background: var(--atomic-status-success-bg);
+    border-color: var(--atomic-status-success-bg);
+    color: var(--atomic-status-success-fg);
+}
+
+/* Telemetry Timeline */
+.atomic-telemetry-timeline {
+    position: relative;
+}
+
+.atomic-batch-group {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.atomic-batch-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-left: 28px;
+}
+
+.atomic-batch-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 12px;
+    border: 2px solid var(--atomic-bg);
+    flex-shrink: 0;
+}
+
+.atomic-batch-title {
+    font-weight: 500;
+    color: var(--atomic-text-muted);
+    font-size: 13px;
+}
+
+.atomic-event-with-line {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+/*
+.atomic-timeline-line {
+    position: absolute;
+    left: 16px;
+    top: 20px;
+    width: 2px;
+    height: calc(100% + 8px);
+    opacity: 0.6;
+}
+
+.atomic-timeline-line[data-last-event="true"] {
+    height: 20px;
+}
+*/
+.atomic-timeline-line[data-last-event="true"] {
+    height: 5px;
+}
+
+.atomic-timeline-line {
+    position: absolute;
+    left: 3px;
+    top: 12px;
+    width: 3px;
+    height: calc(100% + 8px);
+    opacity: 0.6;
+}
+
+.atomic-timeline-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 16px;
+    margin-top: 12px;
+    border: 2px solid;
+    flex-shrink: 0;
+    z-index: 2;
+    position: relative;
+}
+
+.atomic-batch-separator {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--atomic-border) 50%, transparent);
+    margin: 24px 0;
+    position: relative;
+}
+
+.atomic-batch-separator::after {
+    content: '•••';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--atomic-bg);
+    color: var(--atomic-border);
+    padding: 0 8px;
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+/* Info Sections */
+.atomic-info-section {
+    background: var(--atomic-card);
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.atomic-info-header,
+.atomic-telemetry-header {
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--atomic-text-muted);
+}
+
+.atomic-payload-code {
+    background: var(--atomic-code-bg);
+    border: 1px solid var(--atomic-code-border);
+    color: var(--atomic-text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-x: auto;
+    border-radius: 6px;
+}
+
+.atomic-telemetry-event {
+    background: var(--atomic-code-bg);
+    border: 1px solid var(--atomic-code-border);
+    border-radius: 6px;
+    padding: 12px;
+    transition: background-color 0.2s;
+    flex: 1;
+    margin-left: 0;
+}
+
+.atomic-telemetry-event:hover {
+    background: var(--atomic-bg-alt) !important;
+}
+
+/* Secondary Button Override */
+.atomic-btn-secondary {
+    background: var(--atomic-btn-bg);
+    border: 1px solid var(--atomic-btn-border);
+    color: var(--atomic-text);
+}
+
+.atomic-btn-secondary:hover {
+    background: var(--atomic-btn-bg-hover);
+}
+
+/* Empty State */
+.atomic-empty-state {
+    background: var(--atomic-card);
+    border: 1px solid var(--atomic-border);
+}
+
+.atomic-total-jobs {
+    color: var(--atomic-text-muted);
+    font-size: 12px;
+}
+
+/* JSON Syntax Highlighting */
+.json-key { color: var(--atomic-json-key); }
+.json-string { color: var(--atomic-json-string); }
+.json-number { color: var(--atomic-json-number); }
+.json-boolean { color: var(--atomic-json-boolean); }
+.json-null { color: var(--atomic-json-null); }
+.json-punctuation { color: var(--atomic-json-punc); }
+
+/* Filter Panel Components */
+.filter-panel {
+    background: var(--atomic-card);
+    border: 1px solid var(--atomic-border);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.filter-section {
+    border-right: 1px solid var(--atomic-border);
+    padding: 15px;
+}
+
+.filter-section:last-child {
+    border-right: none;
+}
+
+.filter-quick-btn {
+    margin: 2px;
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 700px) {
+    .atomic-job-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .atomic-job-expand-icon {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 600px) {
+    .atomic-toolbar-flex {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .atomic-job-title {
+        font-size: 14px;
+    }
+    
+    .atomic-job-meta {
+        font-size: 12px;
+    }
+}
+
+/* Tabs container helpers */
+.tab-pane {
+    background: var(--atomic-card);
+    border: 1px solid var(--atomic-border);
+    border-radius: 6px;
+}
+
+/* Logs viewer */
+.atomic-log-list {
+    background: var(--atomic-card);
+    border: 1px solid var(--atomic-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.atomic-log-line:hover {
+    background: var(--atomic-bg-alt);
+}
+
+/* Level badges reuse chips; ensure compact */
+.atomic-log-line .atomic-chip {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+/* Dump preview spacing */
+.atomic-log-line pre.atomic-payload-code {
+    margin: 8px 0 0 0;
+}
+
+.at-border-grey, .at-hover-border-grey:hover, .at-border-gray, .at-hover-border-gray:hover {
+    border-color: #27324a !important;
+}
+
+.at-text-coral, .at-hover-text-coral:hover {
+    color: #e05268 !important;
+}
+
+.at-border-dark-grey, .at-hover-border-dark-grey:hover, .at-border-dark-gray, .at-hover-border-dark-gray:hover
+{
+    border-color: #27324a !important;
+}
+
+.at-log-dump-buttons {
+    margin-top: 11px;
+}
