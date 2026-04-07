@@ -36,6 +36,10 @@ class User extends Model implements AuthenticatableInterface, HasRolesInterface
             'type' => Schema::DT_VARCHAR128,
             'nullable' => true,
         ],
+        'avatar_url' => [
+            'type' => Schema::DT_VARCHAR256,
+            'nullable' => true,
+        ],
         'created_at' => [
             'type' => Schema::DT_TIMESTAMP,
             'nullable' => true,
@@ -61,5 +65,39 @@ class User extends Model implements AuthenticatableInterface, HasRolesInterface
     {
         $role = $this->role ?? null;
         return $role ? [(string)$role] : [];
+    }
+
+    public function get_display_name(): string
+    {
+        $name = trim((string)($this->name ?? ''));
+        if ($name !== '') {
+            return $name;
+        }
+
+        return (string)($this->email ?? '');
+    }
+
+    public function get_avatar_initials(): string
+    {
+        $displayName = $this->get_display_name();
+        if ($displayName === '') {
+            return '';
+        }
+
+        $words = preg_split('/\s+/', $displayName) ?: [];
+        $initials = '';
+
+        foreach ($words as $word) {
+            if ($word === '' || mb_strlen($initials) >= 2) {
+                continue;
+            }
+            $initials .= mb_strtoupper(mb_substr($word, 0, 1));
+        }
+
+        if ($initials !== '') {
+            return $initials;
+        }
+
+        return mb_strtoupper(mb_substr($displayName, 0, 1));
     }
 }

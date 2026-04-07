@@ -26,6 +26,7 @@ return [
             $t->addColumn('email')->type(Schema::DT_VARCHAR256)->nullable(false)->index(true);
             $t->addColumn('password')->type(Schema::DT_VARCHAR256)->nullable(true);
             $t->addColumn('role')->type(Schema::DT_VARCHAR128)->nullable(true);
+            $t->addColumn('avatar_url')->type(Schema::DT_VARCHAR256)->nullable(true);
             $t->addColumn('created_at')->type(Schema::DT_TIMESTAMP)->defaults(Schema::DF_CURRENT_TIMESTAMP);
             $t->addColumn('updated_at')->type(Schema::DT_TIMESTAMP)->defaults(Schema::DF_CURRENT_TIMESTAMP);
             $t->build();
