@@ -695,3 +695,54 @@ html, body {
 .at-log-dump-buttons {
     margin-top: 11px;
 }
+/* Log Channel Sub-tabs */
+.atomic-log-channels-nav {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    padding: 8px 0 0 0;
+    border-bottom: 1px solid var(--atomic-border);
+    margin-bottom: 12px;
+}
+
+.atomic-log-channel-tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--atomic-text-muted);
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.18s;
+    border-radius: 4px 4px 0 0;
+}
+
+.atomic-log-channel-tab:hover {
+    color: var(--atomic-text);
+    background: var(--atomic-bg-alt);
+}
+
+.atomic-log-channel-tab.active {
+    color: var(--atomic-text);
+    border-bottom-color: var(--atomic-accent);
+    background: var(--atomic-bg-alt);
+}
+
+/* Log Channel Pane Header */
+.atomic-log-channel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0 8px 0;
+    border-bottom: 1px solid var(--atomic-border);
+    margin-bottom: 8px;
+}
+
+.atomic-log-channel-meta {
+    font-size: 0.82rem;
+    color: var(--atomic-text-faint);
+}
+
+.atomic-log-refresh-btn {
+    font-size: 0.82rem;
+}
