@@ -38,7 +38,7 @@ $application = App::instance($atomic)
     ->registerCorePlugins()
     ->registerPlugins()
     ->initSession()
-    ->setDB()
+    ->openConnections()
     ->registerLocaleHrefs()
     ->registerUserProvider();
 
