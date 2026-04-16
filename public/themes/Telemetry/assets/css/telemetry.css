@@ -60,12 +60,8 @@ html, body {
     font-family: "Lato", sans-serif;
 }
 
-/* Button Base Styles (W3.CSS Compatible) */
-.atomic-btn,
+/* W3 buttons on dark telemetry surfaces (aligned with nav tabs + filter panel) */
 .w3-button {
-    background: var(--atomic-btn-bg) !important; /* !keep-w3 */
-    border: 1px solid var(--atomic-btn-border) !important; /* !keep-w3 */
-    color: var(--atomic-btn-text) !important; /* !keep-w3 */
     padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
@@ -75,32 +71,61 @@ html, body {
     font-size: 13px;
     text-decoration: none;
     transition: background 0.18s, color 0.18s, border-color 0.18s;
+    /* W3.CSS sets overflow:hidden, which makes flex min-size auto compute to 0 and clips labels
+       when a sibling (e.g. width:100% search input) competes for space in a flex row. */
+    overflow: visible;
 }
 
-.atomic-btn:hover,
-.w3-button:hover {
-    background: var(--atomic-btn-bg-hover) !important; /* !keep-w3 hover override */
-    color: var(--atomic-text) !important; /* !keep-w3 hover override */
+.atomic-header-actions .w3-button.w3-border,
+.atomic-pagination-actions a.w3-button,
+.atomic-pagination-actions .w3-button.w3-border,
+.atomic-log-pagination-controls .w3-button,
+.filter-panel .w3-button.w3-border {
+    background: transparent !important;
+    border: 1px solid var(--atomic-border) !important;
+    color: var(--atomic-text-muted) !important;
 }
 
-.atomic-btn.action,
-.w3-button.w3-blue {
-    background: var(--atomic-accent) !important; /* !keep-w3 accent variant */
-    border-color: var(--atomic-accent) !important; /* !keep-w3 accent variant */
-    color: #ffffff !important; /* !keep-w3 accent text */
+.atomic-header-actions .w3-button.w3-border:hover,
+.atomic-pagination-actions a.w3-button:hover:not(.atomic-btn-disabled),
+.atomic-pagination-actions .w3-button.w3-border:hover,
+.atomic-log-pagination-controls .w3-button:hover:not(:disabled),
+.filter-panel .w3-button.w3-border:hover {
+    background: var(--atomic-bg-alt) !important;
+    color: var(--atomic-text) !important;
 }
 
-.atomic-btn.action:hover,
-.w3-button.w3-blue:hover {
-    background: var(--atomic-accent-hover) !important; /* !keep-w3 accent hover */
+.atomic-header-actions .w3-button.w3-blue,
+.filter-panel .w3-button.w3-blue {
+    background: var(--atomic-accent) !important;
+    border-color: var(--atomic-accent) !important;
+    color: #ffffff !important;
 }
 
-.atomic-btn.ghost {
-    background: transparent;
+.atomic-header-actions .w3-button.w3-blue:hover,
+.filter-panel .w3-button.w3-blue:hover {
+    background: var(--atomic-accent-hover) !important;
+    border-color: var(--atomic-accent-hover) !important;
+}
+
+.atomic-nav .w3-button.atomic-nav-tab {
+    background: transparent !important;
+    border: none !important;
+    color: var(--atomic-text-muted) !important;
+    box-shadow: none !important;
+}
+
+.atomic-nav .w3-button.atomic-nav-tab:hover {
+    background: var(--atomic-bg-alt) !important;
+    color: var(--atomic-text) !important;
 }
 
 /* Focus States */
-.atomic-btn:focus-visible,
+.atomic-header-actions .w3-button:focus-visible,
+.atomic-pagination-actions .w3-button:focus-visible,
+.atomic-nav .w3-button:focus-visible,
+.filter-panel .w3-button:focus-visible,
+.atomic-log-pagination-controls .w3-button:focus-visible,
 .atomic-copy-btn:focus-visible,
 .filter-input:focus-visible,
 .filter-select:focus-visible {
@@ -220,6 +245,8 @@ html, body {
 .atomic-header-actions {
     display: flex;
     gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 /* Toolbar Components */
@@ -266,12 +293,104 @@ html, body {
 .atomic-chip-running { background: var(--atomic-status-running-bg); color: var(--atomic-status-running-fg); }
 .atomic-chip-success { background: var(--atomic-status-success-bg); color: var(--atomic-status-success-fg); }
 .atomic-chip-empty { background: var(--atomic-chip-empty-bg); color: var(--atomic-text-muted); }
+.atomic-chip-neutral {
+    background: var(--atomic-chip-empty-bg);
+    color: var(--atomic-text-muted);
+    border-color: var(--atomic-chip-border);
+}
+
+.atomic-chip-link {
+    text-decoration: none;
+    border-radius: 16px;
+}
+
+.atomic-chip-link .atomic-chip {
+    transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.atomic-chip-link:hover .atomic-chip {
+    transform: translateY(-1px);
+}
+
+.atomic-chip-link.atomic-chip-active .atomic-chip {
+    box-shadow: 0 0 0 1px var(--atomic-focus-ring) inset;
+}
+
+.atomic-search-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.atomic-search-form .w3-button {
+    flex-shrink: 0;
+}
+
+.atomic-search-input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 220px;
+    max-width: 320px;
+}
 
 .atomic-total {
     color: var(--atomic-text-muted);
     font-size: 12px;
     padding-left: 4px;
     align-self: center;
+}
+
+.atomic-pagination-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--atomic-border);
+    border-radius: 6px;
+    background: var(--atomic-card);
+}
+
+.atomic-pagination-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.atomic-pagination-label {
+    color: var(--atomic-text-faint);
+    font-size: 12px;
+}
+
+.atomic-pagination-select {
+    width: auto;
+    min-width: 76px;
+    padding: 5px 8px;
+}
+
+.atomic-pagination-current {
+    color: var(--atomic-text-muted);
+    min-width: 92px;
+    text-align: center;
+}
+
+.atomic-btn-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+}
+
+.atomic-pagination-actions a.atomic-btn-disabled:hover {
+    background: transparent !important;
+    color: var(--atomic-text-muted) !important;
+}
+
+.w3-button:disabled {
+    opacity: 0.5;
+    cursor: default;
 }
 
 /* Job List Components */
@@ -379,17 +498,20 @@ html, body {
     display: none; /* Hidden as per requirements */
 }
 
-/* Expand Arrow */
+/* Expand arrow: closed = chevron right, open = rotate 90° to point down */
 .atomic-job-expand-icon {
     display: flex;
     align-items: center;
+    justify-content: center;
     padding: 4px;
     color: var(--atomic-text-muted);
-    transition: transform 0.25s, color 0.25s;
+    transition: color 0.25s;
 }
 
 .atomic-job-expand-icon i {
-    transition: transform 0.2s ease-in-out;
+    display: inline-block;
+    transform: rotate(0deg);
+    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
     font-size: 14px;
 }
 
@@ -398,8 +520,11 @@ html, body {
 }
 
 .atomic-job-header.open .atomic-job-expand-icon {
-    transform: rotate(90deg);
     color: var(--atomic-accent);
+}
+
+.atomic-job-header.open .atomic-job-expand-icon i {
+    transform: rotate(90deg);
 }
 
 /* Copy Button */
@@ -563,17 +688,6 @@ html, body {
 
 .atomic-telemetry-event:hover {
     background: var(--atomic-bg-alt) !important;
-}
-
-/* Secondary Button Override */
-.atomic-btn-secondary {
-    background: var(--atomic-btn-bg);
-    border: 1px solid var(--atomic-btn-border);
-    color: var(--atomic-text);
-}
-
-.atomic-btn-secondary:hover {
-    background: var(--atomic-btn-bg-hover);
 }
 
 /* Empty State */
@@ -743,6 +857,13 @@ html, body {
     color: var(--atomic-text-faint);
 }
 
-.atomic-log-refresh-btn {
-    font-size: 0.82rem;
+.atomic-log-pagination {
+    margin-bottom: 0;
+}
+
+.atomic-log-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }

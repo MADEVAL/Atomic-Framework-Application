@@ -1,4 +1,35 @@
 const cache = new Map();
+const queueFilterKeys = ['driver', 'status', 'queue', 'uuid', 'state', 'date_from', 'date_to'];
+const FILTER_ID_MAP = {
+    driver:    'filter-driver',
+    status:    'filter-status',
+    queue:     'filter-queue',
+    uuid:      'filter-uuid',
+    state:     'filter-state',
+    date_from: 'filter-date-from',
+    date_to:   'filter-date-to'
+};
+
+function updateUrlSearchParams(mutator, mode = 'replace') {
+    const url = new URL(window.location.href);
+    mutator(url.searchParams);
+    const next = url.pathname + (url.search ? url.search : '');
+    try {
+        if (mode === 'push') {
+            window.history.pushState({}, '', next);
+        } else {
+            window.history.replaceState({}, '', next);
+        }
+    } catch (e) {
+        // Ignore URL sync issues; UI/data rendering should continue.
+    }
+}
+
+function readPositiveIntParam(params, key, fallback) {
+    const raw = Number(params.get(key));
+    if (!Number.isFinite(raw) || raw < 1) return fallback;
+    return Math.floor(raw);
+}
 
 // ── DOM helpers ────────────────────────────────────────────────────────────
 
@@ -22,26 +53,15 @@ function setChildren(el, ...nodes) {
     nodes.forEach(n => el.appendChild(typeof n === 'string' ? document.createTextNode(n) : n));
 }
 
-function makeSpinner(labelText) {
+function makeStatusBox(iconCls, colorCls, labelText) {
     const wrap = makeEl('div', 'w3-center w3-margin-top');
-    wrap.appendChild(makeIcon('fa fa-spinner fa-spin w3-text-grey'));
-    wrap.appendChild(makeEl('span', 'w3-text-grey w3-margin-left', labelText));
+    wrap.appendChild(makeIcon(iconCls + ' ' + colorCls));
+    wrap.appendChild(makeEl('span', colorCls + ' w3-margin-left', labelText));
     return wrap;
 }
-
-function makeErrorBox(labelText) {
-    const wrap = makeEl('div', 'w3-center w3-margin-top');
-    wrap.appendChild(makeIcon('fa fa-exclamation-triangle w3-text-red'));
-    wrap.appendChild(makeEl('span', 'w3-text-red w3-margin-left', labelText));
-    return wrap;
-}
-
-function makeInfoBox(labelText) {
-    const wrap = makeEl('div', 'w3-center w3-margin-top');
-    wrap.appendChild(makeIcon('fa fa-info-circle w3-text-grey'));
-    wrap.appendChild(makeEl('span', 'w3-text-grey w3-margin-left', labelText));
-    return wrap;
-}
+function makeSpinner(labelText)  { return makeStatusBox('fa fa-spinner fa-spin',           'w3-text-grey', labelText); }
+function makeErrorBox(labelText) { return makeStatusBox('fa fa-exclamation-triangle',       'w3-text-red',  labelText); }
+function makeInfoBox(labelText)  { return makeStatusBox('fa fa-info-circle',                'w3-text-grey', labelText); }
 
 function makeTelemetryHeader() {
     const div = makeEl('div', 'w3-text-grey w3-medium atomic-telemetry-header');
@@ -144,6 +164,121 @@ function toggleFilter() {
     }
 }
 
+function readQueueFilterInputValue(key) {
+    const id = FILTER_ID_MAP[key];
+    const el = id ? document.getElementById(id) : null;
+    return el ? String(el.value || '').trim() : '';
+}
+
+function populateQueueFiltersFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    queueFilterKeys.forEach((key) => {
+        const id = FILTER_ID_MAP[key];
+        const el = id ? document.getElementById(id) : null;
+        if (!el) return;
+        const value = params.get(key);
+        if (value !== null) el.value = value;
+    });
+}
+
+function navigateToTelemetry(params) {
+    const qs = params.toString();
+    window.location.href = '/telemetry' + (qs ? '?' + qs : '');
+}
+
+function applyFilters() {
+    const params = new URLSearchParams(window.location.search);
+    queueFilterKeys.forEach((key) => {
+        const value = readQueueFilterInputValue(key);
+        if (value) params.set(key, value);
+        else params.delete(key);
+    });
+    params.set('page', '1');
+    if (!params.get('per_page')) params.set('per_page', '50');
+    navigateToTelemetry(params);
+}
+
+function clearAllFilters() {
+    const params = new URLSearchParams(window.location.search);
+    queueFilterKeys.forEach((key) => params.delete(key));
+    params.set('page', '1');
+    navigateToTelemetry(params);
+}
+
+function applyQuickFilter(type) {
+    const now = new Date();
+    const dateFromEl = document.getElementById('filter-date-from');
+    const dateToEl = document.getElementById('filter-date-to');
+    const statusEl = document.getElementById('filter-status');
+
+    const toInputDateTime = (d) => {
+        const pad = (n) => (n < 10 ? '0' + n : '' + n);
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    if (type === 'last_hour') {
+        const from = new Date(now.getTime() - 60 * 60 * 1000);
+        if (dateFromEl) dateFromEl.value = toInputDateTime(from);
+        if (dateToEl) dateToEl.value = toInputDateTime(now);
+    }
+
+    if (type === 'today') {
+        const from = new Date(now);
+        from.setHours(0, 0, 0, 0);
+        if (dateFromEl) dateFromEl.value = toInputDateTime(from);
+        if (dateToEl) dateToEl.value = toInputDateTime(now);
+    }
+
+    if (type === 'failed_only' && statusEl) {
+        statusEl.value = 'failed';
+    }
+
+    applyFilters();
+}
+
+function refreshQueueTabContent(button = null) {
+    const queueTabBody = document.querySelector('#tab-queues .tab-body');
+    if (!queueTabBody) return Promise.resolve();
+
+    if (button) {
+        button.disabled = true;
+        clearNode(button);
+        button.appendChild(makeIcon('fa fa-spinner fa-spin'));
+    }
+
+    const refreshUrl = window.location.pathname + window.location.search;
+    return fetch(refreshUrl, { headers: { 'Accept': 'text/html' } })
+        .then((response) => {
+            if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+            return response.text();
+        })
+        .then((html) => {
+            const parsed = new DOMParser().parseFromString(html, 'text/html');
+            const nextQueueBody = parsed.querySelector('#tab-queues .tab-body');
+            if (!nextQueueBody) throw new Error('Queue tab content not found in response');
+
+            clearNode(queueTabBody);
+            Array.from(nextQueueBody.childNodes).forEach((node) => {
+                queueTabBody.appendChild(document.importNode(node, true));
+            });
+            populateQueueFiltersFromQuery();
+        })
+        .catch((error) => {
+            setChildren(queueTabBody, makeErrorBox('Error refreshing queue: ' + error.message));
+        })
+        .finally(() => {
+            if (!button) return;
+            clearNode(button);
+            button.appendChild(makeIcon('fa fa-refresh'));
+            button.appendChild(document.createTextNode(' Refresh'));
+            button.disabled = false;
+        });
+}
+
+function refreshQueueFromInlineButton(button) {
+    refreshQueueTabContent(button);
+}
+
 function toggleJobDetails(jobHeader) {
     const detailsPanel = jobHeader.nextElementSibling;
     const expandIcon = jobHeader.querySelector('.atomic-job-expand-icon i');
@@ -168,7 +303,7 @@ function toggleJobDetails(jobHeader) {
     } else {
         detailsPanel.classList.remove('w3-hide');
         detailsPanel.classList.add('w3-show');
-        expandIcon.className = 'fa fa-chevron-down';
+        expandIcon.className = 'fa fa-chevron-right';
         jobHeader.classList.add('open');
 
         const uuidEl = jobHeader.querySelector('.atomic-job-uuid');
@@ -309,19 +444,6 @@ function copyToClipboard(text, button) {
     }
 }
 
-function copyTimestamp(dateTimeString, button) {
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(String(dateTimeString)).then(function () {
-            showCopyFeedback(button, true, 'Copied!');
-        }).catch(function (err) {
-            console.error('Failed to copy timestamp using Clipboard API:', err);
-            showCopyFeedback(button, false, 'Error');
-        });
-    } else {
-        console.error('Clipboard API not available');
-        showCopyFeedback(button, false, 'Error');
-    }
-}
 
 function showCopyFeedback(button, success, customMessage = null) {
     const savedNodes = [...button.childNodes].map(n => n.cloneNode(true));
@@ -366,9 +488,8 @@ function loadTelemetryEvents(jobUuid, detailsPanel, driver) {
 
     clearNode(container);
     container.appendChild(makeTelemetryHeader());
-    const spinner = makeEl('div', 'w3-center w3-margin-top atomic-loading-spinner');
-    spinner.appendChild(makeIcon('fa fa-spinner fa-spin w3-text-grey'));
-    spinner.appendChild(makeEl('span', 'w3-text-grey w3-margin-left', 'Loading telemetry events...'));
+    const spinner = makeSpinner('Loading telemetry events...');
+    spinner.classList.add('atomic-loading-spinner');
     container.appendChild(spinner);
 
     fetch('/telemetry/events/' + encodeURIComponent(driver) + '/' + encodeURIComponent(jobUuid))
@@ -555,6 +676,12 @@ function getEventTypeIcon(eventTypeId) {
         active: '',
         loaded: { dashboard: false, hive: false, logs: false }
     };
+    const logChannelState = new Map();
+    const logsViewState = {
+        activeChannel: '',
+        page: 1,
+        perPage: 100
+    };
 
     function qs(sel, root = document) { return root.querySelector(sel); }
     function qsa(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
@@ -573,11 +700,20 @@ function getEventTypeIcon(eventTypeId) {
     function setHeaderActionsVisibility(name) {
         const actions = document.getElementById('queue-header-actions');
         const counters = document.getElementById('queue-header-counters');
-        if (actions) actions.style.display = (name === 'queues') ? '' : 'none';
+        const queueFiltersBtn = document.getElementById('queue-header-filters');
+        const queueRefreshBtn = document.getElementById('queue-header-refresh');
+        const logsRefreshBtn = document.getElementById('logs-header-refresh');
+
+        if (actions) actions.style.display = (name === 'queues' || name === 'logs') ? '' : 'none';
         if (counters) counters.style.display = (name === 'queues') ? '' : 'none';
+        if (queueFiltersBtn) queueFiltersBtn.style.display = (name === 'queues') ? '' : 'none';
+        if (queueRefreshBtn) queueRefreshBtn.style.display = (name === 'queues') ? '' : 'none';
+        if (logsRefreshBtn) logsRefreshBtn.style.display = (name === 'logs') ? '' : 'none';
     }
 
     function setActiveTab(name) {
+        const wasAlreadyLoaded = Boolean(tabState.loaded[name]);
+
         qsa('.atomic-nav-tab').forEach(b => b.classList.remove('atomic-active'));
         const btn = qs(`.atomic-nav-tab[data-tab="${name}"]`);
         if (btn) btn.classList.add('atomic-active');
@@ -594,17 +730,53 @@ function getEventTypeIcon(eventTypeId) {
             if (name === 'logs') loadLogsTab();
             tabState.loaded[name] = true;
         }
+
+        if (name === 'logs' && wasAlreadyLoaded) {
+            syncLogsUrlFromMemory('replace');
+        } else {
+            updateUrlSearchParams((searchParams) => {
+                searchParams.set('tab', name);
+                if (name !== 'logs') {
+                    searchParams.delete('logs_channel');
+                    searchParams.delete('logs_page');
+                    searchParams.delete('logs_per_page');
+                }
+            });
+        }
+
         tabState.active = name;
     }
 
     function initTabs() {
+        populateQueueFiltersFromQuery();
+        const queueHeaderRefreshBtn = document.getElementById('queue-header-refresh');
+        if (queueHeaderRefreshBtn) {
+            queueHeaderRefreshBtn.addEventListener('click', () => {
+                refreshQueueTabContent(queueHeaderRefreshBtn);
+            });
+        }
+        const logsHeaderRefreshBtn = document.getElementById('logs-header-refresh');
+        if (logsHeaderRefreshBtn) {
+            logsHeaderRefreshBtn.addEventListener('click', () => {
+                refreshActiveLogsFromHeader(logsHeaderRefreshBtn);
+            });
+        }
+
         qsa('.atomic-nav-tab').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 setActiveTab(btn.getAttribute('data-tab'));
             });
         });
-        setActiveTab('dashboard');
+
+        const params = new URLSearchParams(window.location.search);
+        const requestedTab = params.get('tab');
+        const queueTabQueryKeys = ['page', 'per_page', ...queueFilterKeys];
+        const shouldOpenQueues = queueTabQueryKeys.some((key) => params.has(key));
+        const initialTab = ['dashboard', 'queues', 'hive', 'logs'].includes(String(requestedTab))
+            ? requestedTab
+            : (shouldOpenQueues ? 'queues' : 'dashboard');
+        setActiveTab(initialTab);
     }
 
     function loadDashboardTab() {
@@ -732,89 +904,247 @@ function getEventTypeIcon(eventTypeId) {
         mountEl.appendChild(list);
     }
 
-    function logStatUrl(channelName) {
-        return '/telemetry/log-stat' + (channelName ? '?channel=' + encodeURIComponent(channelName) : '');
+    function logLogsUrl(channelName, page = 1, perPage = 100) {
+        const params = new URLSearchParams();
+        if (channelName) params.set('channel', channelName);
+        params.set('page', String(page));
+        params.set('per_page', String(perPage));
+        return '/telemetry/logs?' + params.toString();
     }
 
-    function logLogsUrl(channelName) {
-        return '/telemetry/logs' + (channelName ? '?channel=' + encodeURIComponent(channelName) : '');
+    function syncLogsUrlState(channelName, page, perPage, mode = 'replace') {
+        const normalizedPage = Math.max(1, Number(page) || 1);
+        const normalizedPerPage = Math.max(1, Number(perPage) || 100);
+        logsViewState.activeChannel = channelName || '';
+        logsViewState.page = normalizedPage;
+        logsViewState.perPage = normalizedPerPage;
+
+        updateUrlSearchParams((searchParams) => {
+            searchParams.set('tab', 'logs');
+            if (channelName) searchParams.set('logs_channel', channelName);
+            else searchParams.delete('logs_channel');
+            searchParams.set('logs_page', String(normalizedPage));
+            searchParams.set('logs_per_page', String(normalizedPerPage));
+        }, mode);
     }
 
-    function updateChannelMeta(metaEl, count) {
+    function syncLogsUrlFromMemory(mode = 'replace') {
+        const channelFromUi = qs('.atomic-log-channel-tab.active')?.dataset.channel || '';
+        const channelName = channelFromUi || logsViewState.activeChannel || '';
+        const state = getLogChannelState(channelName);
+        const page = Math.max(1, Number(state.page || logsViewState.page || 1));
+        const perPage = Math.max(1, Number(state.per_page || logsViewState.perPage || 100));
+        syncLogsUrlState(channelName, page, perPage, mode);
+    }
+
+    function normalizeLogPagination(raw, fallbackPerPage, fallbackLineCount) {
+        const perPage = Math.max(1, Number(raw?.per_page || fallbackPerPage || 100));
+        const total = Math.max(0, Number(raw?.total ?? fallbackLineCount ?? 0));
+        const lastPage = Math.max(1, Number(raw?.last_page || Math.ceil(total / perPage) || 1));
+        const pageRaw = Math.max(1, Number(raw?.page || 1));
+        const page = Math.min(pageRaw, lastPage);
+        return {
+            page,
+            per_page: perPage,
+            total,
+            last_page: lastPage
+        };
+    }
+
+    function getLogChannelState(channelName) {
+        if (!logChannelState.has(channelName)) {
+            logChannelState.set(channelName, {
+                page: 1,
+                per_page: 100,
+                total: 0,
+                last_page: 1
+            });
+        }
+        return logChannelState.get(channelName);
+    }
+
+    function updateChannelMeta(metaEl, pagination) {
         if (!metaEl) return;
         const now = new Date();
         const pad = n => (n < 10 ? '0' + n : '' + n);
         const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        const from = pagination.total > 0 ? ((pagination.page - 1) * pagination.per_page) + 1 : 0;
+        const to = pagination.total > 0 ? Math.min(pagination.total, pagination.page * pagination.per_page) : 0;
         clearNode(metaEl);
         metaEl.appendChild(makeIcon('fa fa-list-ul'));
-        metaEl.appendChild(document.createTextNode(` ${count} lines \u00a0\u00b7\u00a0 `));
+        metaEl.appendChild(document.createTextNode(` ${from}-${to} of ${pagination.total} lines | page ${pagination.page}/${pagination.last_page} | `));
         metaEl.appendChild(makeIcon('fa fa-clock-o'));
         metaEl.appendChild(document.createTextNode(` ${ts}`));
     }
 
-    function loadChannelLogs(channelName, bodyEl, metaEl) {
-        const cacheKey = 'logs:' + channelName;
+    function renderLogsPaginationControls(pagerEl, pagination, onChange) {
+        if (!pagerEl) return;
+        clearNode(pagerEl);
+
+        const summary = makeEl('span', 'atomic-log-pagination-summary w3-small w3-text-grey');
+        if (pagination.total > 0) {
+            const from = ((pagination.page - 1) * pagination.per_page) + 1;
+            const to = Math.min(pagination.total, pagination.page * pagination.per_page);
+            summary.textContent = `Showing ${from}-${to} of ${pagination.total}`;
+        } else {
+            summary.textContent = 'Showing 0-0 of 0';
+        }
+
+        const controls = makeEl('div', 'atomic-log-pagination-controls');
+        const pageSizeLabel = makeEl('span', 'w3-small w3-text-grey', 'Rows:');
+        controls.appendChild(pageSizeLabel);
+
+        const pageSizeSelect = makeEl('select', 'filter-select atomic-pagination-select');
+        [50, 100, 200, 500].forEach((opt) => {
+            const option = document.createElement('option');
+            option.value = String(opt);
+            option.textContent = String(opt);
+            if (pagination.per_page === opt) option.selected = true;
+            pageSizeSelect.appendChild(option);
+        });
+        pageSizeSelect.addEventListener('change', () => {
+            onChange(1, Number(pageSizeSelect.value || 100));
+        });
+        controls.appendChild(pageSizeSelect);
+
+        const makePagerBtn = (iconClass, disabled, onClick) => {
+            const btn = makeEl('button', 'w3-button w3-round w3-small w3-border');
+            btn.type = 'button';
+            btn.appendChild(makeIcon(iconClass));
+            btn.disabled = Boolean(disabled);
+            if (btn.disabled) btn.classList.add('atomic-btn-disabled');
+            btn.addEventListener('click', onClick);
+            return btn;
+        };
+
+        controls.appendChild(makePagerBtn('fa fa-angle-double-left', pagination.page <= 1, () => onChange(1, pagination.per_page)));
+        controls.appendChild(makePagerBtn('fa fa-angle-left', pagination.page <= 1, () => onChange(Math.max(1, pagination.page - 1), pagination.per_page)));
+
+        const pageLabel = makeEl('span', 'atomic-pagination-current w3-small', `Page ${pagination.page} / ${pagination.last_page}`);
+        controls.appendChild(pageLabel);
+
+        controls.appendChild(makePagerBtn('fa fa-angle-right', pagination.page >= pagination.last_page, () => onChange(Math.min(pagination.last_page, pagination.page + 1), pagination.per_page)));
+        controls.appendChild(makePagerBtn('fa fa-angle-double-right', pagination.page >= pagination.last_page, () => onChange(pagination.last_page, pagination.per_page)));
+
+        pagerEl.appendChild(summary);
+        pagerEl.appendChild(controls);
+    }
+
+    function loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, page = null, perPage = null, historyMode = 'replace') {
+        if (!bodyEl) return Promise.resolve();
+        const state = getLogChannelState(channelName);
+        if (page !== null) state.page = Math.max(1, Number(page));
+        if (perPage !== null) state.per_page = Math.max(1, Number(perPage));
+
+        syncLogsUrlState(channelName, state.page, state.per_page, historyMode);
+
+        const cacheKey = `logs:${channelName}:${state.page}:${state.per_page}`;
         const cached = cache.get(cacheKey);
         if (cached) {
+            state.total     = cached.pagination.total;
+            state.last_page = cached.pagination.last_page;
+            state.page      = cached.pagination.page;
+            state.per_page  = cached.pagination.per_page;
             renderLogLines(cached.lines, bodyEl, channelName);
-            updateChannelMeta(metaEl, cached.count);
-            return;
+            updateChannelMeta(metaEl, cached.pagination);
+            renderLogsPaginationControls(pagerEl, cached.pagination, (nextPage, nextPerPage) => {
+                loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, nextPage, nextPerPage, 'push');
+            });
+            return Promise.resolve();
         }
+
         setChildren(bodyEl, makeSpinner('Loading logs...'));
-        fetchJson(logLogsUrl(channelName))
+        return fetchJson(logLogsUrl(channelName, state.page, state.per_page))
             .then(payload => {
                 const lines = payload.lines || [];
-                cache.set(cacheKey, { lines, count: lines.length });
+                const pagination = normalizeLogPagination(payload.pagination, state.per_page, lines.length);
+                cache.set(cacheKey, { lines, pagination });
+
+                state.total     = pagination.total;
+                state.last_page = pagination.last_page;
+                state.page      = pagination.page;
+                state.per_page  = pagination.per_page;
+                syncLogsUrlState(channelName, state.page, state.per_page, 'replace');
+
                 renderLogLines(lines, bodyEl, channelName);
-                updateChannelMeta(metaEl, lines.length);
+                updateChannelMeta(metaEl, pagination);
+                renderLogsPaginationControls(pagerEl, pagination, (nextPage, nextPerPage) => {
+                    loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, nextPage, nextPerPage, 'push');
+                });
             })
             .catch(err => {
                 setChildren(bodyEl, makeErrorBox('Error: ' + err.message));
+                if (pagerEl) clearNode(pagerEl);
             });
     }
 
-    function refreshChannelLogs(channelName, bodyEl, metaEl, btn) {
-        const cacheKey = 'logs:' + channelName;
-        const savedNodes = [...btn.childNodes].map(n => n.cloneNode(true));
+    function refreshChannelLogs(channelName, bodyEl, metaEl, pagerEl, btn) {
+        const state = getLogChannelState(channelName);
+        cache.delete(`logs:${channelName}:${state.page}:${state.per_page}`);
+
+        if (!btn) {
+            return loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, state.page, state.per_page, 'replace');
+        }
+
         const savedClass = btn.className;
         btn.disabled = true;
         clearNode(btn);
         btn.appendChild(makeIcon('fa fa-spinner fa-spin'));
 
-        fetchJson(logStatUrl(channelName))
-            .then(stat => {
-                const cached = cache.get(cacheKey);
-                const cachedCount = cached ? cached.count : -1;
-                if (cached && stat.count === cachedCount) {
-                    clearNode(btn);
-                    btn.appendChild(makeIcon('fa fa-check'));
-                    btn.appendChild(document.createTextNode(' Up to date'));
-                    setTimeout(() => {
-                        clearNode(btn);
-                        savedNodes.forEach(n => btn.appendChild(n));
-                        btn.className = savedClass;
-                        btn.disabled = false;
-                    }, 2000);
-                    return;
-                }
-                return fetchJson(logLogsUrl(channelName))
-                    .then(payload => {
-                        const lines = payload.lines || [];
-                        cache.set(cacheKey, { lines, count: lines.length });
-                        renderLogLines(lines, bodyEl, channelName);
-                        updateChannelMeta(metaEl, lines.length);
-                        clearNode(btn);
-                        savedNodes.forEach(n => btn.appendChild(n));
-                        btn.className = savedClass;
-                        btn.disabled = false;
-                    });
-            })
-            .catch(() => {
+        return loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, state.page, state.per_page, 'replace')
+            .finally(() => {
                 clearNode(btn);
-                savedNodes.forEach(n => btn.appendChild(n));
+                btn.appendChild(makeIcon('fa fa-refresh'));
+                btn.appendChild(document.createTextNode(' Refresh'));
                 btn.className = savedClass;
                 btn.disabled = false;
             });
+    }
+
+    function getActiveLogsPaneElements() {
+        const activeChannel = logsViewState.activeChannel || '';
+        const paneSelector = activeChannel
+            ? `.atomic-log-channel-pane[data-channel="${CSS.escape(activeChannel)}"]`
+            : '.atomic-log-channel-pane';
+        const tabBody = qs('#tab-logs .tab-body');
+        if (!tabBody) return null;
+
+        const pane = qs(paneSelector, tabBody);
+        if (!pane) {
+            const bodyEl = qs('.atomic-log-channel-body', tabBody);
+            const pagerEl = qs('.atomic-log-pagination', tabBody);
+            if (!bodyEl || !pagerEl) return null;
+            return { channelName: activeChannel, bodyEl, metaEl: null, pagerEl };
+        }
+
+        const bodyEl = qs('.atomic-log-channel-body', pane);
+        const metaEl = qs('.atomic-log-channel-meta', pane);
+        const pagerEl = qs('.atomic-log-pagination', pane);
+        if (!bodyEl || !pagerEl) return null;
+
+        return { channelName: activeChannel, bodyEl, metaEl, pagerEl };
+    }
+
+    function refreshActiveLogsFromHeader(btn) {
+        const paneState = getActiveLogsPaneElements();
+        if (!paneState) return;
+
+        btn.disabled = true;
+        clearNode(btn);
+        btn.appendChild(makeIcon('fa fa-spinner fa-spin'));
+
+        refreshChannelLogs(
+            paneState.channelName,
+            paneState.bodyEl,
+            paneState.metaEl,
+            paneState.pagerEl,
+            null
+        ).finally(() => {
+            clearNode(btn);
+            btn.appendChild(makeIcon('fa fa-refresh'));
+            btn.appendChild(document.createTextNode(' Refresh'));
+            btn.disabled = false;
+        });
     }
 
     function loadLogsTab() {
@@ -824,68 +1154,104 @@ function getEventTypeIcon(eventTypeId) {
         fetchJson('/telemetry/log-channels')
             .then(payload => {
                 const channels = payload.channels || [];
+                const query = new URLSearchParams(window.location.search);
+                const queryLogsChannel = query.get('logs_channel') || '';
+                const queryLogsPage = readPositiveIntParam(query, 'logs_page', 1);
+                const queryLogsPerPage = readPositiveIntParam(query, 'logs_per_page', 100);
                 clearNode(container);
                 if (!channels.length) {
-                    loadChannelLogs('', container, null);
+                    const body = makeEl('div', 'atomic-log-channel-body');
+                    const pager = makeEl('div', 'atomic-log-pagination atomic-pagination-bar w3-margin-top');
+                    container.appendChild(body);
+                    container.appendChild(pager);
+                    const state = getLogChannelState('');
+                    state.page = queryLogsPage;
+                    state.per_page = queryLogsPerPage;
+                    loadChannelLogs('', body, null, pager, state.page, state.per_page, 'replace');
                     return;
                 }
 
                 const nav = makeEl('div', 'atomic-log-channels-nav');
                 const content = makeEl('div', 'atomic-log-channels-content');
 
+                const initialChannel = channels.includes(queryLogsChannel) ? queryLogsChannel : channels[0];
+                logsViewState.activeChannel = initialChannel;
+                logsViewState.page = queryLogsPage;
+                logsViewState.perPage = queryLogsPerPage;
+
                 channels.forEach((ch, i) => {
-                    const tabBtn = makeEl('button', 'atomic-log-channel-tab' + (i === 0 ? ' active' : ''));
+                    const tabBtn = makeEl('button', 'atomic-log-channel-tab' + (ch === initialChannel ? ' active' : ''));
+                    tabBtn.type = 'button';
                     tabBtn.dataset.channel = ch;
                     tabBtn.appendChild(makeIcon('fa fa-file-text-o'));
                     tabBtn.appendChild(document.createTextNode(' ' + ch));
                     nav.appendChild(tabBtn);
 
-                    const pane = makeEl('div', 'atomic-log-channel-pane' + (i === 0 ? '' : ' w3-hide'));
+                    const pane = makeEl('div', 'atomic-log-channel-pane' + (ch === initialChannel ? '' : ' w3-hide'));
                     pane.dataset.channel = ch;
 
                     const header = makeEl('div', 'atomic-log-channel-header');
                     const meta = makeEl('span', 'atomic-log-channel-meta w3-text-grey w3-small');
-                    const refreshBtn = makeEl('button', 'atomic-log-refresh-btn atomic-copy-btn');
-                    refreshBtn.dataset.channel = ch;
-                    refreshBtn.appendChild(makeIcon('fa fa-refresh'));
-                    refreshBtn.appendChild(document.createTextNode(' Refresh'));
                     header.appendChild(meta);
-                    header.appendChild(refreshBtn);
 
+                    const pager = makeEl('div', 'atomic-log-pagination atomic-pagination-bar w3-margin-top');
                     const body = makeEl('div', 'atomic-log-channel-body');
                     pane.appendChild(header);
                     pane.appendChild(body);
+                    pane.appendChild(pager);
                     content.appendChild(pane);
-
-                    refreshBtn.addEventListener('click', () => {
-                        refreshChannelLogs(ch, body, meta, refreshBtn);
-                    });
 
                     tabBtn.addEventListener('click', () => {
                         nav.querySelectorAll('.atomic-log-channel-tab').forEach(b => b.classList.remove('active'));
                         tabBtn.classList.add('active');
                         content.querySelectorAll('.atomic-log-channel-pane').forEach(p => p.classList.add('w3-hide'));
                         pane.classList.remove('w3-hide');
-                        if (!body.firstChild) {
-                            loadChannelLogs(ch, body, meta);
-                        }
+
+                        const state = getLogChannelState(ch);
+                        logsViewState.activeChannel = ch;
+                        logsViewState.page = state.page;
+                        logsViewState.perPage = state.per_page;
+
+                        // Always load on tab switch; cache avoids unnecessary network traffic.
+                        loadChannelLogs(ch, body, meta, pager, state.page, state.per_page, 'push');
                     });
                 });
 
                 container.appendChild(nav);
                 container.appendChild(content);
 
-                const firstPane = content.querySelector('.atomic-log-channel-pane');
+                const firstPane = content.querySelector(`.atomic-log-channel-pane[data-channel="${CSS.escape(initialChannel)}"]`);
                 if (firstPane) {
+                    const state = getLogChannelState(initialChannel);
+                    state.page = queryLogsPage;
+                    state.per_page = queryLogsPerPage;
                     loadChannelLogs(
-                        channels[0],
+                        initialChannel,
                         firstPane.querySelector('.atomic-log-channel-body'),
-                        firstPane.querySelector('.atomic-log-channel-meta')
+                        firstPane.querySelector('.atomic-log-channel-meta'),
+                        firstPane.querySelector('.atomic-log-pagination'),
+                        state.page,
+                        state.per_page,
+                        'replace'
                     );
                 }
             })
             .catch(() => {
-                loadChannelLogs('', container, null);
+                clearNode(container);
+                const body = makeEl('div', 'atomic-log-channel-body');
+                const pager = makeEl('div', 'atomic-log-pagination atomic-pagination-bar w3-margin-top');
+                container.appendChild(body);
+                container.appendChild(pager);
+                const query = new URLSearchParams(window.location.search);
+                loadChannelLogs(
+                    '',
+                    body,
+                    null,
+                    pager,
+                    readPositiveIntParam(query, 'logs_page', 1),
+                    readPositiveIntParam(query, 'logs_per_page', 100),
+                    'replace'
+                );
             });
     }
 
