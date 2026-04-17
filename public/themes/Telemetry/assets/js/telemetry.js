@@ -677,10 +677,12 @@ function getEventTypeIcon(eventTypeId) {
         loaded: { dashboard: false, hive: false, logs: false }
     };
     const logChannelState = new Map();
+    const channelDates = new Map();
     const logsViewState = {
         activeChannel: '',
         page: 1,
-        perPage: 100
+        perPage: 100,
+        date: ''
     };
 
     function qs(sel, root = document) { return root.querySelector(sel); }
@@ -740,6 +742,7 @@ function getEventTypeIcon(eventTypeId) {
                     searchParams.delete('logs_channel');
                     searchParams.delete('logs_page');
                     searchParams.delete('logs_per_page');
+                    searchParams.delete('logs_date');
                 }
             });
         }
@@ -904,20 +907,22 @@ function getEventTypeIcon(eventTypeId) {
         mountEl.appendChild(list);
     }
 
-    function logLogsUrl(channelName, page = 1, perPage = 100) {
+    function logLogsUrl(channelName, page = 1, perPage = 100, logDate = '') {
         const params = new URLSearchParams();
         if (channelName) params.set('channel', channelName);
+        if (logDate) params.set('date', logDate);
         params.set('page', String(page));
         params.set('per_page', String(perPage));
         return '/telemetry/logs?' + params.toString();
     }
 
-    function syncLogsUrlState(channelName, page, perPage, mode = 'replace') {
+    function syncLogsUrlState(channelName, page, perPage, logDate = '', mode = 'replace') {
         const normalizedPage = Math.max(1, Number(page) || 1);
         const normalizedPerPage = Math.max(1, Number(perPage) || 100);
         logsViewState.activeChannel = channelName || '';
         logsViewState.page = normalizedPage;
         logsViewState.perPage = normalizedPerPage;
+        logsViewState.date = logDate || '';
 
         updateUrlSearchParams((searchParams) => {
             searchParams.set('tab', 'logs');
@@ -925,6 +930,8 @@ function getEventTypeIcon(eventTypeId) {
             else searchParams.delete('logs_channel');
             searchParams.set('logs_page', String(normalizedPage));
             searchParams.set('logs_per_page', String(normalizedPerPage));
+            if (logDate) searchParams.set('logs_date', logDate);
+            else searchParams.delete('logs_date');
         }, mode);
     }
 
@@ -934,7 +941,8 @@ function getEventTypeIcon(eventTypeId) {
         const state = getLogChannelState(channelName);
         const page = Math.max(1, Number(state.page || logsViewState.page || 1));
         const perPage = Math.max(1, Number(state.per_page || logsViewState.perPage || 100));
-        syncLogsUrlState(channelName, page, perPage, mode);
+        const logDate = state.date || logsViewState.date || '';
+        syncLogsUrlState(channelName, page, perPage, logDate, mode);
     }
 
     function normalizeLogPagination(raw, fallbackPerPage, fallbackLineCount) {
@@ -957,13 +965,15 @@ function getEventTypeIcon(eventTypeId) {
                 page: 1,
                 per_page: 100,
                 total: 0,
-                last_page: 1
+                last_page: 1,
+                date: '',
+                dates: []
             });
         }
         return logChannelState.get(channelName);
     }
 
-    function updateChannelMeta(metaEl, pagination) {
+    function updateChannelMeta(metaEl, pagination, logDate = '') {
         if (!metaEl) return;
         const now = new Date();
         const pad = n => (n < 10 ? '0' + n : '' + n);
@@ -972,9 +982,60 @@ function getEventTypeIcon(eventTypeId) {
         const to = pagination.total > 0 ? Math.min(pagination.total, pagination.page * pagination.per_page) : 0;
         clearNode(metaEl);
         metaEl.appendChild(makeIcon('fa fa-list-ul'));
-        metaEl.appendChild(document.createTextNode(` ${from}-${to} of ${pagination.total} lines | page ${pagination.page}/${pagination.last_page} | `));
+        metaEl.appendChild(document.createTextNode(` ${from}-${to} of ${pagination.total} lines | `));
+        if (logDate) {
+            metaEl.appendChild(makeIcon('fa fa-calendar'));
+            metaEl.appendChild(document.createTextNode(` ${logDate} | `));
+        }
+        metaEl.appendChild(document.createTextNode(`page ${pagination.page}/${pagination.last_page} | `));
         metaEl.appendChild(makeIcon('fa fa-clock-o'));
         metaEl.appendChild(document.createTextNode(` ${ts}`));
+    }
+
+    function normalizeLogDates(rawDates) {
+        if (!Array.isArray(rawDates)) return [];
+        const valid = rawDates
+            .map((d) => String(d || '').trim())
+            .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d));
+        return Array.from(new Set(valid)).sort((a, b) => b.localeCompare(a));
+    }
+
+    function renderLogDateRow(channelName, rowEl, bodyEl, metaEl, pagerEl) {
+        if (!rowEl) return;
+        clearNode(rowEl);
+
+        const state = getLogChannelState(channelName);
+        const dates = normalizeLogDates(channelDates.get(channelName) || state.dates || []);
+        channelDates.set(channelName, dates);
+        state.dates = dates;
+
+        if (!dates.length) {
+            rowEl.appendChild(makeEl('span', 'atomic-log-date-empty w3-small w3-text-grey', 'No dated log files found'));
+            state.date = '';
+            return;
+        }
+
+        if (!dates.includes(state.date)) {
+            state.date = dates[0];
+        }
+
+        const label = makeEl('span', 'atomic-log-date-label w3-small w3-text-grey', 'Dates:');
+        rowEl.appendChild(label);
+
+        dates.forEach((dateValue) => {
+            const btn = makeEl('button', 'atomic-log-date-tab' + (dateValue === state.date ? ' active' : ''));
+            btn.type = 'button';
+            btn.dataset.date = dateValue;
+            btn.textContent = dateValue;
+            btn.addEventListener('click', () => {
+                if (state.date === dateValue) return;
+                state.date = dateValue;
+                state.page = 1;
+                renderLogDateRow(channelName, rowEl, bodyEl, metaEl, pagerEl);
+                loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, 1, state.per_page, dateValue, 'push');
+            });
+            rowEl.appendChild(btn);
+        });
     }
 
     function renderLogsPaginationControls(pagerEl, pagination, onChange) {
@@ -1030,46 +1091,62 @@ function getEventTypeIcon(eventTypeId) {
         pagerEl.appendChild(controls);
     }
 
-    function loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, page = null, perPage = null, historyMode = 'replace') {
+    function loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, page = null, perPage = null, logDate = null, historyMode = 'replace') {
         if (!bodyEl) return Promise.resolve();
         const state = getLogChannelState(channelName);
         if (page !== null) state.page = Math.max(1, Number(page));
         if (perPage !== null) state.per_page = Math.max(1, Number(perPage));
+        if (logDate !== null) state.date = String(logDate || '');
+        if (!state.date) {
+            const knownDates = normalizeLogDates(channelDates.get(channelName) || state.dates || []);
+            if (knownDates.length) state.date = knownDates[0];
+        }
 
-        syncLogsUrlState(channelName, state.page, state.per_page, historyMode);
+        syncLogsUrlState(channelName, state.page, state.per_page, state.date || '', historyMode);
 
-        const cacheKey = `logs:${channelName}:${state.page}:${state.per_page}`;
+        const cacheKey = `logs:${channelName}:${state.date || 'none'}:${state.page}:${state.per_page}`;
         const cached = cache.get(cacheKey);
         if (cached) {
             state.total     = cached.pagination.total;
             state.last_page = cached.pagination.last_page;
             state.page      = cached.pagination.page;
             state.per_page  = cached.pagination.per_page;
+            state.date      = cached.date || state.date || '';
+            state.dates     = normalizeLogDates(cached.dates || state.dates || []);
             renderLogLines(cached.lines, bodyEl, channelName);
-            updateChannelMeta(metaEl, cached.pagination);
+            updateChannelMeta(metaEl, cached.pagination, state.date);
             renderLogsPaginationControls(pagerEl, cached.pagination, (nextPage, nextPerPage) => {
-                loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, nextPage, nextPerPage, 'push');
+                loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, nextPage, nextPerPage, state.date, 'push');
             });
             return Promise.resolve();
         }
 
         setChildren(bodyEl, makeSpinner('Loading logs...'));
-        return fetchJson(logLogsUrl(channelName, state.page, state.per_page))
+        return fetchJson(logLogsUrl(channelName, state.page, state.per_page, state.date))
             .then(payload => {
                 const lines = payload.lines || [];
                 const pagination = normalizeLogPagination(payload.pagination, state.per_page, lines.length);
-                cache.set(cacheKey, { lines, pagination });
+                const responseDates = normalizeLogDates(payload.dates || state.dates || []);
+                if (responseDates.length) {
+                    channelDates.set(channelName, responseDates);
+                    state.dates = responseDates;
+                }
+                const responseDate = String(payload.date || state.date || '');
+                if (responseDate) state.date = responseDate;
+
+                const resolvedCacheKey = `logs:${channelName}:${state.date || 'none'}:${pagination.page}:${pagination.per_page}`;
+                cache.set(resolvedCacheKey, { lines, pagination, date: state.date, dates: state.dates });
 
                 state.total     = pagination.total;
                 state.last_page = pagination.last_page;
                 state.page      = pagination.page;
                 state.per_page  = pagination.per_page;
-                syncLogsUrlState(channelName, state.page, state.per_page, 'replace');
+                syncLogsUrlState(channelName, state.page, state.per_page, state.date, 'replace');
 
                 renderLogLines(lines, bodyEl, channelName);
-                updateChannelMeta(metaEl, pagination);
+                updateChannelMeta(metaEl, pagination, state.date);
                 renderLogsPaginationControls(pagerEl, pagination, (nextPage, nextPerPage) => {
-                    loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, nextPage, nextPerPage, 'push');
+                    loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, nextPage, nextPerPage, state.date, 'push');
                 });
             })
             .catch(err => {
@@ -1080,10 +1157,10 @@ function getEventTypeIcon(eventTypeId) {
 
     function refreshChannelLogs(channelName, bodyEl, metaEl, pagerEl, btn) {
         const state = getLogChannelState(channelName);
-        cache.delete(`logs:${channelName}:${state.page}:${state.per_page}`);
+        cache.delete(`logs:${channelName}:${state.date || 'none'}:${state.page}:${state.per_page}`);
 
         if (!btn) {
-            return loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, state.page, state.per_page, 'replace');
+            return loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, state.page, state.per_page, state.date, 'replace');
         }
 
         const savedClass = btn.className;
@@ -1091,7 +1168,7 @@ function getEventTypeIcon(eventTypeId) {
         clearNode(btn);
         btn.appendChild(makeIcon('fa fa-spinner fa-spin'));
 
-        return loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, state.page, state.per_page, 'replace')
+        return loadChannelLogs(channelName, bodyEl, metaEl, pagerEl, state.page, state.per_page, state.date, 'replace')
             .finally(() => {
                 clearNode(btn);
                 btn.appendChild(makeIcon('fa fa-refresh'));
@@ -1154,20 +1231,26 @@ function getEventTypeIcon(eventTypeId) {
         fetchJson('/telemetry/log-channels')
             .then(payload => {
                 const channels = payload.channels || [];
+                const channelDatesPayload = payload.channel_dates || {};
                 const query = new URLSearchParams(window.location.search);
                 const queryLogsChannel = query.get('logs_channel') || '';
+                const queryLogsDate = query.get('logs_date') || '';
                 const queryLogsPage = readPositiveIntParam(query, 'logs_page', 1);
                 const queryLogsPerPage = readPositiveIntParam(query, 'logs_per_page', 100);
                 clearNode(container);
                 if (!channels.length) {
                     const body = makeEl('div', 'atomic-log-channel-body');
+                    const dateRow = makeEl('div', 'atomic-log-dates-row');
                     const pager = makeEl('div', 'atomic-log-pagination atomic-pagination-bar w3-margin-top');
                     container.appendChild(body);
+                    container.appendChild(dateRow);
                     container.appendChild(pager);
                     const state = getLogChannelState('');
                     state.page = queryLogsPage;
                     state.per_page = queryLogsPerPage;
-                    loadChannelLogs('', body, null, pager, state.page, state.per_page, 'replace');
+                    state.date = queryLogsDate;
+                    renderLogDateRow('', dateRow, body, null, pager);
+                    loadChannelLogs('', body, null, pager, state.page, state.per_page, state.date, 'replace');
                     return;
                 }
 
@@ -1175,11 +1258,18 @@ function getEventTypeIcon(eventTypeId) {
                 const content = makeEl('div', 'atomic-log-channels-content');
 
                 const initialChannel = channels.includes(queryLogsChannel) ? queryLogsChannel : channels[0];
+                channels.forEach((ch) => {
+                    const dates = normalizeLogDates(channelDatesPayload[ch] || []);
+                    channelDates.set(ch, dates);
+                });
+                const initialDates = channelDates.get(initialChannel) || [];
+                const initialDate = initialDates.includes(queryLogsDate) ? queryLogsDate : (initialDates[0] || '');
                 logsViewState.activeChannel = initialChannel;
                 logsViewState.page = queryLogsPage;
                 logsViewState.perPage = queryLogsPerPage;
+                logsViewState.date = initialDate;
 
-                channels.forEach((ch, i) => {
+                channels.forEach((ch) => {
                     const tabBtn = makeEl('button', 'atomic-log-channel-tab' + (ch === initialChannel ? ' active' : ''));
                     tabBtn.type = 'button';
                     tabBtn.dataset.channel = ch;
@@ -1194,12 +1284,22 @@ function getEventTypeIcon(eventTypeId) {
                     const meta = makeEl('span', 'atomic-log-channel-meta w3-text-grey w3-small');
                     header.appendChild(meta);
 
+                    const dateRow = makeEl('div', 'atomic-log-dates-row');
                     const pager = makeEl('div', 'atomic-log-pagination atomic-pagination-bar w3-margin-top');
                     const body = makeEl('div', 'atomic-log-channel-body');
                     pane.appendChild(header);
+                    pane.appendChild(dateRow);
                     pane.appendChild(body);
                     pane.appendChild(pager);
                     content.appendChild(pane);
+
+                    const state = getLogChannelState(ch);
+                    const channelDatesList = channelDates.get(ch) || [];
+                    state.date = ch === initialChannel
+                        ? initialDate
+                        : (state.date || channelDatesList[0] || '');
+                    state.dates = channelDatesList;
+                    renderLogDateRow(ch, dateRow, body, meta, pager);
 
                     tabBtn.addEventListener('click', () => {
                         nav.querySelectorAll('.atomic-log-channel-tab').forEach(b => b.classList.remove('active'));
@@ -1208,12 +1308,17 @@ function getEventTypeIcon(eventTypeId) {
                         pane.classList.remove('w3-hide');
 
                         const state = getLogChannelState(ch);
+                        if (!state.date) {
+                            state.date = (channelDates.get(ch) || [])[0] || '';
+                        }
                         logsViewState.activeChannel = ch;
                         logsViewState.page = state.page;
                         logsViewState.perPage = state.per_page;
+                        logsViewState.date = state.date || '';
+                        renderLogDateRow(ch, dateRow, body, meta, pager);
 
                         // Always load on tab switch; cache avoids unnecessary network traffic.
-                        loadChannelLogs(ch, body, meta, pager, state.page, state.per_page, 'push');
+                        loadChannelLogs(ch, body, meta, pager, state.page, state.per_page, state.date, 'push');
                     });
                 });
 
@@ -1225,6 +1330,16 @@ function getEventTypeIcon(eventTypeId) {
                     const state = getLogChannelState(initialChannel);
                     state.page = queryLogsPage;
                     state.per_page = queryLogsPerPage;
+                    state.date = initialDate;
+                    state.dates = initialDates;
+                    const firstDateRow = firstPane.querySelector('.atomic-log-dates-row');
+                    renderLogDateRow(
+                        initialChannel,
+                        firstDateRow,
+                        firstPane.querySelector('.atomic-log-channel-body'),
+                        firstPane.querySelector('.atomic-log-channel-meta'),
+                        firstPane.querySelector('.atomic-log-pagination')
+                    );
                     loadChannelLogs(
                         initialChannel,
                         firstPane.querySelector('.atomic-log-channel-body'),
@@ -1232,6 +1347,7 @@ function getEventTypeIcon(eventTypeId) {
                         firstPane.querySelector('.atomic-log-pagination'),
                         state.page,
                         state.per_page,
+                        state.date,
                         'replace'
                     );
                 }
@@ -1239,10 +1355,13 @@ function getEventTypeIcon(eventTypeId) {
             .catch(() => {
                 clearNode(container);
                 const body = makeEl('div', 'atomic-log-channel-body');
+                const dateRow = makeEl('div', 'atomic-log-dates-row');
                 const pager = makeEl('div', 'atomic-log-pagination atomic-pagination-bar w3-margin-top');
                 container.appendChild(body);
+                container.appendChild(dateRow);
                 container.appendChild(pager);
                 const query = new URLSearchParams(window.location.search);
+                const queryLogsDate = query.get('logs_date') || '';
                 loadChannelLogs(
                     '',
                     body,
@@ -1250,6 +1369,7 @@ function getEventTypeIcon(eventTypeId) {
                     pager,
                     readPositiveIntParam(query, 'logs_page', 1),
                     readPositiveIntParam(query, 'logs_per_page', 100),
+                    queryLogsDate,
                     'replace'
                 );
             });

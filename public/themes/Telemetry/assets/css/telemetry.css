@@ -857,6 +857,41 @@ html, body {
     color: var(--atomic-text-faint);
 }
 
+.atomic-log-dates-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.atomic-log-date-label {
+    margin-right: 4px;
+}
+
+.atomic-log-date-tab {
+    background: transparent;
+    border: 1px solid var(--atomic-border);
+    color: var(--atomic-text-muted);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+
+.atomic-log-date-tab:hover {
+    color: var(--atomic-text);
+    border-color: var(--atomic-accent-soft);
+    background: var(--atomic-bg-alt);
+}
+
+.atomic-log-date-tab.active {
+    color: var(--atomic-text);
+    border-color: var(--atomic-accent);
+    background: rgba(31, 111, 235, 0.12);
+}
+
 .atomic-log-pagination {
     margin-bottom: 0;
 }
