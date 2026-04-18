@@ -17,16 +17,13 @@ return [
     'key'            => '',           // APP_KEY from .env
     'uuid'           => '',           // APP_UUID from .env
     'encryption_key' => '',           // APP_ENCRYPTION_KEY from .env
-    'domain'         => '',           // DOMAIN from .env
-    'timezone'       => 'UTC',
+    'domain'         => 'http://localhost:8000/',
+    'timezone'       => 'Europe/Kyiv',
     'theme'          => 'default',
     'encoding'       => 'UTF-8',
     'language'       => 'en',
-    'fallback'       => 'en',
     'debug'          => false,
     'debug_level'    => 'error',
-    'atomic_hive'    => false,
-    'escape'         => false,
     'paths' => [
         'ui'                  => 'public/themes/',
         'temp'                => 'storage/framework/cache/data/',
@@ -39,6 +36,11 @@ return [
         'migrations_core'     => 'engine/Atomic/Core/Database/Migrations/',
         'user_plugins'        => 'public/plugins/',
         'framework_routes'    => 'engine/Atomic/Core/Routes/',
+    ],
+    'websocket' => [
+        'host'        => '0.0.0.0',
+        'client_host' => '127.0.0.1',
+        'port'        => 8080,
     ],
     'cors' => [
         'headers'     => 'Content-Type,Authorization',

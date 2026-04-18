@@ -10,7 +10,7 @@ return [
             'host'        => '127.0.0.1',
             'port'        => 3306,
             'database'    => 'atomic',
-            'username'    => 'root',
+            'username'    => 'atomic',
             'password'    => '',
             'unix_socket' => '',
             'charset'     => 'utf8mb4',
@@ -18,7 +18,6 @@ return [
         ],
     ],
     'redis' => [
-        'client'   => 'phpredis',
         'host'     => '127.0.0.1',
         'port'     => 6379,
         'password' => '',
