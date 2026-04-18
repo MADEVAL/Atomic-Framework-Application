@@ -18,8 +18,11 @@ return [
         ],
     ],
     'redis' => [
-        'host' => '127.0.0.1',
-        'port' => 6379,
+        'client'   => 'phpredis',
+        'host'     => '127.0.0.1',
+        'port'     => 6379,
+        'password' => '',
+        'db'       => 0,
     ],
     'memcached' => [
         'host'     => '127.0.0.1',
