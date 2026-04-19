@@ -308,7 +308,7 @@ function toggleJobDetails(jobHeader) {
 
         const uuidEl = jobHeader.querySelector('.atomic-job-uuid');
         const jobUuid = uuidEl ? uuidEl.textContent.trim() : jobHeader.querySelector('.atomic-job-title').textContent.trim();
-        const driver = jobHeader.dataset.driver || 'database';
+        const driver = jobHeader.dataset.driver || 'db';
         if (jobUuid) {
             loadTelemetryEvents(jobUuid, detailsPanel, driver);
             formatJsonPayload(jobUuid);

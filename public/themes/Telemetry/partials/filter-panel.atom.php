@@ -9,7 +9,7 @@ if (!defined( 'ATOMIC_START' ) ) exit;
             <label class="filter-label">Driver</label>
             <select id="filter-driver" class="filter-select">
                 <option value="">All Drivers</option>
-                <option value="database">Database</option>
+                <option value="db">Database</option>
                 <option value="redis">Redis</option>
             </select>
         </div>

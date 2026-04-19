@@ -17,7 +17,7 @@ return [
     'key'            => '',           // APP_KEY from .env
     'uuid'           => '',           // APP_UUID from .env
     'encryption_key' => '',           // APP_ENCRYPTION_KEY from .env
-    'domain'         => 'http://localhost:8000/',
+    'domain'         => 'http://example.com/',
     'timezone'       => 'Europe/Kyiv',
     'theme'          => 'default',
     'encoding'       => 'UTF-8',
