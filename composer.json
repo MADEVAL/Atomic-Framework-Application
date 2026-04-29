@@ -7,14 +7,8 @@
   "prefer-stable": true,
   "require": {
     "php": ">=8.1",
-    "atomic/framework": "dev-main"
+    "globus-studio/atomic-framework": "dev-main"
   },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/MADEVAL/Atomic-Framework"
-    }
-  ],
   "autoload": {
     "psr-4": {
       "App\\": "app/"

@@ -5,6 +5,6 @@ require __DIR__.'/vendor/autoload.php';
 global $argv;
 
 $app = require_once __DIR__.'/bootstrap/app.php';
-$status = $app->handleCommand($argv);
+$status = $app->handle_command($argv);
 
 exit($status);

@@ -3,9 +3,9 @@ declare(strict_types=1);
 if (!defined('ATOMIC_START')) exit;
 
 return [
-    'driver' => 'database',        // database | redis
+    'driver' => 'db',           // db | redis
     'name'   => 'default',
-    'database' => [
+    'db' => [
         'queues' => [
             'default' => [
                 'delay'        => 0,
@@ -14,7 +14,6 @@ return [
                 'max_attempts' => 3,
                 'retry_delay'  => 5,
                 'worker_cnt'   => 5,
-                'batch_size'   => 10,
                 'ttl'          => 604800,
             ],
         ],
@@ -28,7 +27,6 @@ return [
                 'max_attempts' => 3,
                 'retry_delay'  => 5,
                 'worker_cnt'   => 5,
-                'batch_size'   => 10,
                 'ttl'          => 604800,
             ],
         ],

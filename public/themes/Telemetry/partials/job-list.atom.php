@@ -1,5 +1,34 @@
 <?php
 if (!defined( 'ATOMIC_START' ) ) exit;
+
+$queue_pagination = is_array($pagination ?? null) ? $pagination : [];
+$queue_page_raw = (int)($queue_pagination['page'] ?? 1);
+$queue_page = max(1, $queue_page_raw);
+$queue_per_page = max(1, (int)($queue_pagination['per_page'] ?? 50));
+$queue_total = max(0, (int)($queue_pagination['total'] ?? (is_array($jobs ?? null) ? count($jobs) : 0)));
+$queue_last_page = max(1, (int)($queue_pagination['last_page'] ?? ($queue_per_page > 0 ? ceil($queue_total / $queue_per_page) : 1)));
+$queue_active_page = min($queue_page, $queue_last_page);
+$queue_from = $queue_total > 0 ? (($queue_active_page - 1) * $queue_per_page) + 1 : 0;
+$queue_to = $queue_total > 0 ? min($queue_total, $queue_active_page * $queue_per_page) : 0;
+
+$build_queue_url = static function (array $query): string {
+    $qs = http_build_query($query);
+    return '/telemetry' . ($qs !== '' ? ('?' . $qs) : '');
+};
+
+$build_queue_page_url = static function (int $target_page) use ($build_queue_url, $queue_per_page): string {
+    $query = $_GET;
+    $query['page'] = max(1, $target_page);
+    $query['per_page'] = $queue_per_page;
+    return $build_queue_url($query);
+};
+
+$build_queue_per_page_url = static function (int $target_per_page) use ($build_queue_url): string {
+    $query = $_GET;
+    $query['page'] = 1;
+    $query['per_page'] = max(1, $target_per_page);
+    return $build_queue_url($query);
+};
 ?>
 <!-- Job List -->
 <?php if (!empty($jobs)): ?>
@@ -79,7 +108,7 @@ if (!defined( 'ATOMIC_START' ) ) exit;
                                         <button class="atomic-copy-btn" 
                                                 onclick="copyToClipboard('<?php echo htmlspecialchars($uuid); ?>', this)"
                                                 title="Copy UUID to clipboard">
-                                            <i class="fa fa-copy"></i>
+                                            <i class="fa fa-clone"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -147,12 +176,12 @@ if (!defined( 'ATOMIC_START' ) ) exit;
                                         <div class="at-text-coral w3-small"><?php echo htmlspecialchars($job['created_at_formatted']); ?></div>
                                         <div style="display: flex; gap: 8px;">
                                             <button class="atomic-copy-btn" 
-                                                    onclick="copyTimestamp('<?php echo htmlspecialchars($job['created_at_formatted']); ?>', this)"
+                                                    onclick="copyToClipboard('<?php echo htmlspecialchars($job['created_at_formatted']); ?>', this)"
                                                     title="Copy formatted timestamp">
                                                 <i class="fa fa-calendar"></i>
                                             </button>
                                             <button class="atomic-copy-btn" 
-                                                    onclick="copyTimestamp('<?php echo htmlspecialchars($job['created_at']); ?>', this)"
+                                                    onclick="copyToClipboard('<?php echo htmlspecialchars($job['created_at']); ?>', this)"
                                                     title="Copy Unix timestamp">
                                                 <i class="fa fa-clock-o"></i>
                                             </button>
@@ -195,7 +224,7 @@ if (!defined( 'ATOMIC_START' ) ) exit;
                                 </div>
                             </div>
                             <div class="w3-col m4 l4 w3-right-align">
-                                <button class="w3-button w3-small w3-round w3-blue atomic-btn" onclick="togglePayload(this, '<?php echo htmlspecialchars($uuid); ?>')">
+                                <button class="w3-button w3-round w3-small w3-border" onclick="togglePayload(this, '<?php echo htmlspecialchars($uuid); ?>')">
                                     <i class="fa fa-chevron-down w3-margin-right"></i>Collapse
                                 </button>
                             </div>
@@ -221,6 +250,63 @@ if (!defined( 'ATOMIC_START' ) ) exit;
                 </div> <!-- Close atomic-job-item -->
         <?php endforeach; ?>
     </div>
+
+    <div class="atomic-pagination-bar w3-margin-top">
+        <div class="atomic-pagination-summary w3-small w3-text-grey">
+            Showing <?php echo htmlspecialchars((string)$queue_from); ?>-<?php echo htmlspecialchars((string)$queue_to); ?> of <?php echo htmlspecialchars((string)$queue_total); ?> jobs
+        </div>
+        <div class="atomic-pagination-actions">
+            <label for="queue-per-page" class="atomic-pagination-label">Rows:</label>
+            <select
+                id="queue-per-page"
+                class="filter-select atomic-pagination-select"
+                onchange="window.location.href=this.value"
+            >
+                <?php foreach ([25, 50, 100, 200] as $option_per_page): ?>
+                    <option
+                        value="<?php echo htmlspecialchars($build_queue_per_page_url($option_per_page)); ?>"
+                        <?php echo $queue_per_page === $option_per_page ? 'selected' : ''; ?>
+                    >
+                        <?php echo htmlspecialchars((string)$option_per_page); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <a
+                href="<?php echo htmlspecialchars($build_queue_page_url(1)); ?>"
+                class="w3-button w3-round w3-small w3-border <?php echo $queue_active_page <= 1 ? 'atomic-btn-disabled' : ''; ?>"
+                aria-disabled="<?php echo $queue_active_page <= 1 ? 'true' : 'false'; ?>"
+            >
+                <i class="fa fa-angle-double-left"></i>
+            </a>
+            <a
+                href="<?php echo htmlspecialchars($build_queue_page_url(max(1, $queue_active_page - 1))); ?>"
+                class="w3-button w3-round w3-small w3-border <?php echo $queue_active_page <= 1 ? 'atomic-btn-disabled' : ''; ?>"
+                aria-disabled="<?php echo $queue_active_page <= 1 ? 'true' : 'false'; ?>"
+            >
+                <i class="fa fa-angle-left"></i>
+            </a>
+
+            <span class="atomic-pagination-current w3-small">
+                Page <?php echo htmlspecialchars((string)$queue_active_page); ?> / <?php echo htmlspecialchars((string)$queue_last_page); ?>
+            </span>
+
+            <a
+                href="<?php echo htmlspecialchars($build_queue_page_url(min($queue_last_page, $queue_active_page + 1))); ?>"
+                class="w3-button w3-round w3-small w3-border <?php echo $queue_active_page >= $queue_last_page ? 'atomic-btn-disabled' : ''; ?>"
+                aria-disabled="<?php echo $queue_active_page >= $queue_last_page ? 'true' : 'false'; ?>"
+            >
+                <i class="fa fa-angle-right"></i>
+            </a>
+            <a
+                href="<?php echo htmlspecialchars($build_queue_page_url($queue_last_page)); ?>"
+                class="w3-button w3-round w3-small w3-border <?php echo $queue_active_page >= $queue_last_page ? 'atomic-btn-disabled' : ''; ?>"
+                aria-disabled="<?php echo $queue_active_page >= $queue_last_page ? 'true' : 'false'; ?>"
+            >
+                <i class="fa fa-angle-double-right"></i>
+            </a>
+        </div>
+    </div>
 <?php else: ?>
     <div class="w3-card-4 w3-center w3-padding-64 w3-round atomic-empty-state">
         <div class="w3-text-grey w3-xxxlarge">
@@ -228,8 +314,8 @@ if (!defined( 'ATOMIC_START' ) ) exit;
         </div>
         <h3 class="w3-text-grey">No jobs in queue</h3>
         <p class="w3-text-grey">All jobs have been processed or no jobs have been submitted yet.</p>
-        <a href="/telemetry" class="w3-button w3-green w3-round">
+        <button type="button" class="w3-button w3-green w3-round" onclick="refreshQueueFromInlineButton(this)">
             <i class="fa fa-refresh w3-margin-right"></i>Refresh Queue
-        </a>
+        </button>
     </div>
 <?php endif; ?>

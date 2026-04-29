@@ -9,7 +9,7 @@ if (!defined( 'ATOMIC_START' ) ) exit;
             <label class="filter-label">Driver</label>
             <select id="filter-driver" class="filter-select">
                 <option value="">All Drivers</option>
-                <option value="database">Database</option>
+                <option value="db">Database</option>
                 <option value="redis">Redis</option>
             </select>
         </div>
@@ -21,7 +21,7 @@ if (!defined( 'ATOMIC_START' ) ) exit;
                 <option value="completed">Completed</option>
                 <option value="failed">Failed</option>
                 <option value="running">Running</option>
-                <option value="queued">Queued</option>
+                <option value="pending">Pending</option>
             </select>
         </div>
         
@@ -52,7 +52,8 @@ if (!defined( 'ATOMIC_START' ) ) exit;
             <label class="filter-label">State</label>
             <select id="filter-state" class="filter-select">
                 <option value="">All States</option>
-                <option value="in_progress">In Progress</option>
+                <option value="running">Running</option>
+                <option value="pending">Pending</option>
                 <option value="completed">Completed</option>
                 <option value="failed">Failed</option>
             </select>

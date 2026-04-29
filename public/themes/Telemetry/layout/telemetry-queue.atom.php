@@ -22,7 +22,7 @@ get_head();
             <!-- Queues Tab Content -->
             <div id="tab-queues" class="tab-pane w3-container w3-padding w3-hide">
                 <div class="tab-body">
-                    <?php get_section('filter-panel'); ?>
+                    <!-- TODO: bring back advanced filter panel when queue filtering/indexing is redesigned -->
                     <?php get_section('job-list'); ?>
                 </div>
             </div>

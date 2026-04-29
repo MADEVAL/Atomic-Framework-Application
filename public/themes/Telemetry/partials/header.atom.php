@@ -3,6 +3,25 @@ if (!defined( 'ATOMIC_START' ) ) exit;
 ?>
 <!-- Header -->
 <header class="w3-container atomic-header">
+    <?php
+    $current_query = $GET ?? [];
+    $build_queue_url = static function (array $query): string {
+        $qs = http_build_query($query);
+        return '/telemetry' . ($qs !== '' ? ('?' . $qs) : '');
+    };
+    $build_status_url = static function (?string $status = null) use ($current_query, $build_queue_url): string {
+        $query = $current_query;
+        $query['tab'] = 'queues';
+        $query['page'] = 1;
+        if ($status === null || $status === '') {
+            unset($query['status']);
+        } else {
+            $query['status'] = $status;
+        }
+        return $build_queue_url($query);
+    };
+    $has_status_filter = isset($filters['status']) && in_array($filters['status'], ['failed', 'completed', 'pending', 'running'], true);
+    ?>
     <div class="atomic-header-flex">
         <div class="atomic-header-left">
             <h1 class="atomic-header-title">
@@ -13,27 +32,26 @@ if (!defined( 'ATOMIC_START' ) ) exit;
         <div class="atomic-header-right">
             <div id="queue-header-counters" class="atomic-header-counters">
                 <?php if ($status_counts['total'] > 0): ?>
-                    <?php if ($status_counts['failed'] > 0): ?>
+                    <a href="<?php echo htmlspecialchars($build_status_url('failed')); ?>" class="atomic-chip-link <?php echo (($filters['status'] ?? '') === 'failed') ? 'atomic-chip-active' : ''; ?>">
                         <span class="atomic-chip atomic-chip-failed">
                             <i class="fa fa-times"></i><span><?php echo htmlspecialchars($status_counts['failed']); ?> failed</span>
                         </span>
-                    <?php endif; ?>
-                    <?php if ($status_counts['queued'] > 0): ?>
-                        <span class="atomic-chip atomic-chip-queued">
-                            <i class="fa fa-clock-o"></i><span><?php echo htmlspecialchars($status_counts['queued']); ?> queued</span>
-                        </span>
-                    <?php endif; ?>
-                    <?php if ($status_counts['running'] > 0): ?>
-                        <span class="atomic-chip atomic-chip-running">
-                            <i class="fa fa-cogs"></i><span><?php echo htmlspecialchars($status_counts['running']); ?> running</span>
-                        </span>
-                    <?php endif; ?>
-                    <?php if ($status_counts['completed'] > 0): ?>
+                    </a>
+                    <a href="<?php echo htmlspecialchars($build_status_url('completed')); ?>" class="atomic-chip-link <?php echo (($filters['status'] ?? '') === 'completed') ? 'atomic-chip-active' : ''; ?>">
                         <span class="atomic-chip atomic-chip-success">
                             <i class="fa fa-check"></i><span><?php echo htmlspecialchars($status_counts['completed']); ?> completed</span>
                         </span>
-                    <?php endif; ?>
-                    <span class="atomic-total">Total: <?php echo htmlspecialchars($status_counts['total']); ?></span>
+                    </a>
+                    <a href="<?php echo htmlspecialchars($build_status_url('pending')); ?>" class="atomic-chip-link <?php echo (($filters['status'] ?? '') === 'pending') ? 'atomic-chip-active' : ''; ?>">
+                        <span class="atomic-chip atomic-chip-queued">
+                            <i class="fa fa-clock-o"></i><span><?php echo htmlspecialchars($status_counts['pending']); ?> waiting</span>
+                        </span>
+                    </a>
+                    <a href="<?php echo htmlspecialchars($build_status_url()); ?>" class="atomic-chip-link <?php echo !$has_status_filter ? 'atomic-chip-active' : ''; ?>">
+                        <span class="atomic-chip atomic-chip-neutral">
+                            <i class="fa fa-database"></i><span><?php echo htmlspecialchars($status_counts['total']); ?> all jobs</span>
+                        </span>
+                    </a>
                 <?php else: ?>
                     <span class="atomic-chip atomic-chip-empty">
                         <i class="fa fa-check"></i><span>Queue empty</span>
@@ -41,12 +59,23 @@ if (!defined( 'ATOMIC_START' ) ) exit;
                 <?php endif; ?>
             </div>
             <div id="queue-header-actions" class="atomic-header-actions">
-                <button onclick="toggleFilter()" class="atomic-btn">
-                    <i class="fa fa-filter"></i><span>Filters</span>
-                </button>
-                <a href="/telemetry" class="atomic-btn ghost">
+                <form method="get" action="/telemetry" class="atomic-search-form">
+                    <input type="hidden" name="tab" value="queues">
+                    <?php if (($filters['status'] ?? '') !== ''): ?>
+                        <input type="hidden" name="status" value="<?php echo htmlspecialchars((string)$filters['status']); ?>">
+                    <?php endif; ?>
+                    <input type="hidden" name="page" value="1">
+                    <input type="text" name="uuid" value="<?php echo htmlspecialchars((string)($filters['uuid'] ?? '')); ?>" class="filter-input atomic-search-input" placeholder="Search UUID...">
+                    <button type="submit" class="w3-button w3-round w3-small w3-border">
+                        <i class="fa fa-search"></i><span>Search</span>
+                    </button>
+                </form>
+                <button id="queue-header-refresh" type="button" class="w3-button w3-round w3-small w3-border">
                     <i class="fa fa-refresh"></i><span>Refresh</span>
-                </a>
+                </button>
+                <button id="logs-header-refresh" type="button" class="w3-button w3-round w3-small w3-border" style="display:none;">
+                    <i class="fa fa-refresh"></i><span>Refresh</span>
+                </button>
             </div>
         </div>
     </div>

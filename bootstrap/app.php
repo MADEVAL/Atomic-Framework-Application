@@ -29,18 +29,18 @@ switch (ATOMIC_LOADER) {
 
 $application = App::instance($atomic)
     ->prefly()
-    ->registerLogger()
-    ->registerExceptionHandler()
-    ->registerLocales()
-    ->registerUnloadHandler()
-    ->registerMiddleware()
-    ->registerRoutes()
-    ->registerCorePlugins()
-    ->registerPlugins()
-    ->initSession()
-    ->setDB()
-    ->registerLocaleHrefs()
-    ->registerUserProvider();
+    ->register_logger()
+    ->register_exception_handler()
+    ->register_locales()
+    ->register_unload_handler()
+    ->register_middleware()
+    ->register_routes()
+    ->register_core_plugins()
+    ->register_plugins()
+    ->init_session()
+    ->open_connections()
+    ->register_locale_hrefs()
+    ->register_user_provider();
 
 \App\Event\Application::instance()->init();
 \App\Hook\Application::instance()->init();
