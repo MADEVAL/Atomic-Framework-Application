@@ -23,6 +23,17 @@ php atomic init/key
 php -S localhost:8000 -t public
 ```
 
+Install via Composer:
+
+```bash
+composer create-project globus-studio/atomic-framework-application myapp
+cd myapp
+composer install
+cp .env.example .env
+php atomic init/key
+php -S localhost:8000 -t public
+```
+
 Key folders:
 - `app/` - application code (controllers, models, middleware).
 - `bootstrap/` - framework bootstrap and initialization.
