@@ -18,31 +18,39 @@ switch (ATOMIC_LOADER) {
     case 'php':
         $phpLoader = new PhpConfigLoader($atomic);
         $phpLoader->load();
+        $loader = 'php';
         break;
     case 'env':
         ConfigLoader::init($atomic, ATOMIC_ENV);
+        $loader = 'env';
         break;
     default:
         ConfigLoader::init($atomic, ATOMIC_ENV);
+        $loader = 'env';
         break;
 }
 
-$application = App::instance($atomic)
-    ->prefly()
-    ->register_logger()
-    ->register_exception_handler()
-    ->register_locales()
-    ->register_unload_handler()
-    ->register_middleware()
-    ->register_routes()
-    ->register_core_plugins()
-    ->register_plugins()
-    ->init_session()
-    ->open_connections()
-    ->register_locale_hrefs()
-    ->register_user_provider();
+$application = App::instance($atomic);
 
 \App\Event\Application::instance()->init();
 \App\Hook\Application::instance()->init();
+
+$application
+    ->config_loaded($loader)
+    ->register_logger()
+    ->register_exception_handler()
+    ->prefly()
+    ->register_locales()
+    ->register_locale_hrefs()
+    ->register_unload_handler()
+    ->register_middleware()
+    ->core_ready()
+    ->register_core_plugins()
+    ->register_plugins()
+    ->register_routes()
+    ->init_session()
+    ->open_connections()
+    ->register_user_provider()
+    ->app_bootstrapped();
 
 return $application;
