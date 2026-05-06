@@ -4,7 +4,7 @@ namespace App\Http\Models;
 
 if (!defined('ATOMIC_START')) exit;
 
-use DB\SQL\Schema;
+use DB\Cortex\Schema\Schema;
 use Engine\Atomic\App\Model;
 use Engine\Atomic\Auth\Interfaces\AuthenticatableInterface;
 use Engine\Atomic\Auth\Interfaces\HasRolesInterface;

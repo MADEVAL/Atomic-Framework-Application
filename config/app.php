@@ -24,6 +24,9 @@ return [
     'language'       => 'en',
     'debug'          => false,
     'debug_level'    => 'error',
+    'telemetry' => [
+        'access_mode' => 'none', // none, config, auth
+    ],
     'paths' => [
         'ui'                  => 'public/themes/',
         'temp'                => 'storage/framework/cache/data/',
