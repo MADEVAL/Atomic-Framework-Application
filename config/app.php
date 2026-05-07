@@ -26,6 +26,7 @@ return [
     'debug_level'    => 'error',
     'telemetry' => [
         'access_mode' => 'none', // none, config, auth
+        'access_allowed_roles' => ['admin'],
     ],
     'paths' => [
         'ui'                  => 'public/themes/',
