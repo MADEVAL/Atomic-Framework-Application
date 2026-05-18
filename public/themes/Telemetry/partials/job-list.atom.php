@@ -33,13 +33,12 @@ $build_queue_per_page_url = static function (int $target_per_page) use ($build_q
 <!-- Job List -->
 <?php if (!empty($jobs)): ?>
     <div class="w3-card-4 w3-round atomic-job-list">
-        <?php $i = 0; foreach ($jobs as $uuid => $job): $i++; ?>
+        <?php $i = 0; foreach ($jobs as $uuid => $job): $i++; $job_state = (string)($job['state'] ?? ''); ?>
                 <!-- Job Item with filter data attributes -->
                 <div class="atomic-job-item" 
                      data-driver="<?php echo htmlspecialchars($job['driver']); ?>"
-                     data-status="<?php echo htmlspecialchars($job['status']); ?>" 
                      data-queue="<?php echo htmlspecialchars($job['queue']); ?>"
-                     data-state="<?php echo htmlspecialchars($job['status']); ?>"
+                     data-state="<?php echo htmlspecialchars($job_state); ?>"
                      data-created-at="<?php echo htmlspecialchars($job['created_at']); ?>"
                      data-created-at-formatted="<?php echo htmlspecialchars($job['created_at_formatted']); ?>"
                      >
@@ -54,11 +53,15 @@ $build_queue_per_page_url = static function (int $target_per_page) use ($build_q
                     <div class="atomic-job-row">
                         <div class="atomic-job-main">
                             <div class="atomic-job-icon-wrapper">
-                                <?php if ($job['status'] == 'running'): ?>
+                                <?php if ($job_state == 'running'): ?>
                                     <div class="atomic-job-icon atomic-icon-running"><i class="fa fa-cogs w3-spin"></i></div>
-                                <?php elseif ($job['status'] == 'completed'): ?>
+                                <?php elseif ($job_state == 'cancel_requested'): ?>
+                                    <div class="atomic-job-icon atomic-icon-cancel-requested"><i class="fa fa-exclamation-circle"></i></div>
+                                <?php elseif (in_array($job_state, ['canceled', 'cancelled'], true)): ?>
+                                    <div class="atomic-job-icon atomic-icon-canceled"><i class="fa fa-ban"></i></div>
+                                <?php elseif ($job_state == 'completed'): ?>
                                     <div class="atomic-job-icon atomic-icon-success"><i class="fa fa-check"></i></div>
-                                <?php elseif ($job['status'] == 'failed'): ?>
+                                <?php elseif ($job_state == 'failed'): ?>
                                     <div class="atomic-job-icon atomic-icon-failed"><i class="fa fa-times"></i></div>
                                 <?php else: ?>
                                     <div class="atomic-job-icon atomic-icon-queued"><i class="fa fa-clock-o"></i></div>
@@ -71,7 +74,7 @@ $build_queue_per_page_url = static function (int $target_per_page) use ($build_q
                                 </div>
                                 <div class="atomic-job-meta">
                                     <span><strong>Created:</strong> <?php echo htmlspecialchars($job['created_at_formatted']); ?></span>
-                                    <?php if ($job['status'] == 'running' && !empty($job['process_start_ticks'])): ?>
+                                    <?php if ($job_state == 'running' && !empty($job['process_start_ticks'])): ?>
                                         <span class="meta-sep">•</span><span><strong>Started:</strong> <?php echo htmlspecialchars($job['process_start_ticks']); ?></span>
                                     <?php endif; ?>
                                     <span class="meta-sep">•</span>
@@ -189,9 +192,68 @@ $build_queue_per_page_url = static function (int $target_per_page) use ($build_q
                                     </div>
                                 </div>
                             </div>
+
+                            <?php
+                                $cancel_requested_at_raw = $job['cancel_requested_at'] ?? '';
+                                $cancelled_at_raw = $job['cancelled_at'] ?? '';
+                                $cancel_reason = trim((string)($job['reason'] ?? ''));
+                                $cancel_requested_at = (string)($job['cancel_requested_at_formatted'] ?? '');
+                                $cancelled_at = (string)($job['cancelled_at_formatted'] ?? '');
+                                $has_cancel_details = $cancel_requested_at !== '' || $cancelled_at !== '' || $cancel_reason !== '';
+                            ?>
+                            <?php if ($has_cancel_details): ?>
+                                <div class="w3-row w3-padding-small w3-border-bottom at-border-grey">
+                                    <div class="w3-col s12">
+                                        <div class="w3-text-grey w3-medium atomic-info-header w3-margin-bottom">
+                                            <i class="fa fa-ban w3-margin-right"></i>Cancellation
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <?php if ($cancel_requested_at !== ''): ?>
+                                    <div class="w3-row w3-padding-small w3-border-bottom at-border-grey">
+                                        <div class="w3-col s12 m12">
+                                            <div class="w3-text-grey w3-small">Cancel Requested At:</div>
+                                            <div class="w3-margin-top-off" style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div class="at-text-coral w3-small"><?php echo htmlspecialchars($cancel_requested_at); ?></div>
+                                                <button class="atomic-copy-btn"
+                                                        onclick="copyToClipboard('<?php echo htmlspecialchars((string)$cancel_requested_at_raw); ?>', this)"
+                                                        title="Copy raw timestamp">
+                                                    <i class="fa fa-clock-o"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($cancelled_at !== ''): ?>
+                                    <div class="w3-row w3-padding-small w3-border-bottom at-border-grey">
+                                        <div class="w3-col s12 m12">
+                                            <div class="w3-text-grey w3-small">Cancelled At:</div>
+                                            <div class="w3-margin-top-off" style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div class="at-text-coral w3-small"><?php echo htmlspecialchars($cancelled_at); ?></div>
+                                                <button class="atomic-copy-btn"
+                                                        onclick="copyToClipboard('<?php echo htmlspecialchars((string)$cancelled_at_raw); ?>', this)"
+                                                        title="Copy raw timestamp">
+                                                    <i class="fa fa-clock-o"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($cancel_reason !== ''): ?>
+                                    <div class="w3-row w3-padding-small w3-border-bottom at-border-grey">
+                                        <div class="w3-col s12">
+                                            <div class="w3-text-grey w3-small">Cancellation Reason:</div>
+                                            <div class="at-text-coral w3-small w3-margin-top-off"><?php echo htmlspecialchars($cancel_reason); ?></div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
                             
                             <!-- Error Row (if applicable) -->
-                            <?php if ($job['status'] == 'failed' && !empty($job['exception'])): ?>
+                            <?php if ($job_state == 'failed' && !empty($job['exception'])): ?>
                                 <div class="w3-row w3-padding-small at-border-grey">
                                     <div class="w3-col s12">
                                         <div class="w3-text-grey w3-medium atomic-info-header w3-margin-bottom">

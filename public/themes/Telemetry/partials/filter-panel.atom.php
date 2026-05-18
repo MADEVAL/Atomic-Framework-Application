@@ -15,21 +15,23 @@ if (!defined( 'ATOMIC_START' ) ) exit;
         </div>
         
         <div class="w3-quarter filter-section">
-            <label class="filter-label">Status</label>
-            <select id="filter-status" class="filter-select">
-                <option value="">All Status</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-                <option value="running">Running</option>
-                <option value="pending">Pending</option>
-            </select>
-        </div>
-        
-        <div class="w3-quarter filter-section">
             <label class="filter-label">Queue</label>
             <input type="text" id="filter-queue" class="filter-input" placeholder="Queue name...">
         </div>
         
+        <div class="w3-quarter filter-section">
+            <label class="filter-label">State</label>
+            <select id="filter-state" class="filter-select">
+                <option value="">All States</option>
+                <option value="completed">Completed</option>
+                <option value="failed">Failed</option>
+                <option value="cancel_requested">Cancel Requested</option>
+                <option value="cancelled">Canceled</option>
+                <option value="running">Running</option>
+                <option value="pending">Pending</option>
+            </select>
+        </div>
+
         <div class="w3-quarter filter-section">
             <label class="filter-label">UUID Search</label>
             <input type="text" id="filter-uuid" class="filter-input" placeholder="Job UUID...">
@@ -46,17 +48,6 @@ if (!defined( 'ATOMIC_START' ) ) exit;
         <div class="w3-quarter filter-section">
             <label class="filter-label">Date To</label>
             <input type="datetime-local" id="filter-date-to" class="filter-input">
-        </div>
-        
-        <div class="w3-quarter filter-section">
-            <label class="filter-label">State</label>
-            <select id="filter-state" class="filter-select">
-                <option value="">All States</option>
-                <option value="running">Running</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-            </select>
         </div>
         
         <div class="w3-quarter filter-section">

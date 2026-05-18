@@ -1,8 +1,7 @@
 const cache = new Map();
-const queueFilterKeys = ['driver', 'status', 'queue', 'uuid', 'state', 'date_from', 'date_to'];
+const queueFilterKeys = ['driver', 'queue', 'uuid', 'state', 'date_from', 'date_to'];
 const FILTER_ID_MAP = {
     driver:    'filter-driver',
-    status:    'filter-status',
     queue:     'filter-queue',
     uuid:      'filter-uuid',
     state:     'filter-state',
@@ -209,7 +208,7 @@ function applyQuickFilter(type) {
     const now = new Date();
     const dateFromEl = document.getElementById('filter-date-from');
     const dateToEl = document.getElementById('filter-date-to');
-    const statusEl = document.getElementById('filter-status');
+    const stateEl = document.getElementById('filter-state');
 
     const toInputDateTime = (d) => {
         const pad = (n) => (n < 10 ? '0' + n : '' + n);
@@ -229,8 +228,8 @@ function applyQuickFilter(type) {
         if (dateToEl) dateToEl.value = toInputDateTime(now);
     }
 
-    if (type === 'failed_only' && statusEl) {
-        statusEl.value = 'failed';
+    if (type === 'failed_only' && stateEl) {
+        stateEl.value = 'failed';
     }
 
     applyFilters();
