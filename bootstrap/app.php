@@ -18,15 +18,10 @@ switch (ATOMIC_LOADER) {
     case 'php':
         $phpLoader = new PhpConfigLoader($atomic);
         $phpLoader->load();
-        $loader = 'php';
         break;
     case 'env':
-        ConfigLoader::init($atomic, ATOMIC_ENV);
-        $loader = 'env';
-        break;
     default:
         ConfigLoader::init($atomic, ATOMIC_ENV);
-        $loader = 'env';
         break;
 }
 
@@ -36,7 +31,7 @@ $application = App::instance($atomic);
 \App\Hook\Application::instance()->init();
 
 $application
-    ->config_loaded($loader)
+    ->config_loaded($loader ?? null)
     ->register_logger()
     ->register_exception_handler()
     ->prefly()

@@ -10,8 +10,21 @@ define('ATOMIC_DIR', realpath(ATOMIC_ROOT . DIRECTORY_SEPARATOR . '..'));
 define('ATOMIC_ENV', ATOMIC_DIR . DIRECTORY_SEPARATOR . '.env');
 define('ATOMIC_APP_ROUTES', ATOMIC_DIR . DIRECTORY_SEPARATOR . 'routes' . DIRECTORY_SEPARATOR);
 define('ATOMIC_CONFIG', ATOMIC_DIR . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR);
-define('ATOMIC_VENDOR', ATOMIC_DIR . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR);
-define('ATOMIC_FRAMEWORK', realpath(ATOMIC_VENDOR . 'globus-studio' . DIRECTORY_SEPARATOR . 'atomic-framework') . DIRECTORY_SEPARATOR);
+
+$vendorPath = ATOMIC_DIR . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR;
+if (!is_dir($vendorPath)) {
+    $vendorPath = ATOMIC_DIR . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR;
+    if (!is_dir($vendorPath)) {
+        $vendorPath = ATOMIC_DIR . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR;
+    }
+}
+define('ATOMIC_VENDOR', realpath($vendorPath) . DIRECTORY_SEPARATOR);
+
+$frameworkPath = ATOMIC_VENDOR . 'globus-studio' . DIRECTORY_SEPARATOR . 'atomic-framework' . DIRECTORY_SEPARATOR;
+if (!is_dir($frameworkPath)) {
+    $frameworkPath = ATOMIC_VENDOR . 'atomic' . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR;
+}
+define('ATOMIC_FRAMEWORK', realpath($frameworkPath) . DIRECTORY_SEPARATOR);
 define('ATOMIC_ENGINE', ATOMIC_FRAMEWORK . 'engine' . DIRECTORY_SEPARATOR);
 define('ATOMIC_SUPPORT', ATOMIC_FRAMEWORK . 'engine' . DIRECTORY_SEPARATOR . 'Atomic' . DIRECTORY_SEPARATOR . 'Support' . DIRECTORY_SEPARATOR);
 define('ATOMIC_UPLOADS', ATOMIC_DIR . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR);
@@ -30,28 +43,28 @@ define('HALF_MONTH_IN_SECONDS', 15 * DAY_IN_SECONDS);
 
 define('ATOMIC_MAX_MEMORY_LIMIT', 256);
 define('ATOMIC_DEFAULT_MEMORY_LIMIT', 128);
-define('ATOMIC_CACHE_ALL_PAGES', true);                             // Cache all pages (true/false)
-define('ATOMIC_CACHE_EXPIRE_TIME', HOUR_IN_SECONDS);                // Cache expiration time in seconds
-define('ATOMIC_SAVE_QUERIES', false);                               // Save database queries (true/false)
-define('ATOMIC_COMPRESS_CSS', false);                               // Compress CSS (true/false)
-define('ATOMIC_COMPRESS_JS', false);                                // Compress JS (true/false)
-define('ATOMIC_CONCATENATE_SCRIPTS', false);                        // Concatenate JS (true/false)
-define('ATOMIC_CONCATENATE_STYLES', false);                         // Concatenate CSS (true/false)
+define('ATOMIC_CACHE_ALL_PAGES', true);
+define('ATOMIC_CACHE_EXPIRE_TIME', HOUR_IN_SECONDS);
+define('ATOMIC_SAVE_QUERIES', false);
+define('ATOMIC_COMPRESS_CSS', false);
+define('ATOMIC_COMPRESS_JS', false);
+define('ATOMIC_CONCATENATE_SCRIPTS', false);
+define('ATOMIC_CONCATENATE_STYLES', false);
 
 define('ATOMIC_HTTP_USERAGENT', 'AtomicHTTP/'.ATOMIC_VERSION.' PHP/'.PHP_VERSION . '; https://globus.studio');
 define('ATOMIC_HTTP_RETRIES', 3);
-define('ATOMIC_HTTP_TIMEOUT', 15);                                  // in seconds
-define('ATOMIC_HTTP_ENGINE', 'curl');                               // curl | socket | stream
+define('ATOMIC_HTTP_TIMEOUT', 15);
+define('ATOMIC_HTTP_ENGINE', 'curl');
 
-define('ATOMIC_JPEG_QUALITY', 85);                                  // JPEG quality (0-100)
-define('ATOMIC_PNG_COMPRESSION_LEVEL', 6);                          // PNG compression level (0-9)
-define('ATOMIC_WEBP_QUALITY', 85);                                  // WEBP quality (0-100)
-define('ATOMIC_AVIF_QUALITY', 50);                                  // AVIF quality (0-100)
-define('ATOMIC_SVG_PRECISION', 3);                                  // SVG precision (1-10)
+define('ATOMIC_JPEG_QUALITY', 85);
+define('ATOMIC_PNG_COMPRESSION_LEVEL', 6);
+define('ATOMIC_WEBP_QUALITY', 85);
+define('ATOMIC_AVIF_QUALITY', 50);
+define('ATOMIC_SVG_PRECISION', 3);
 
-define('ATOMIC_THUMBNAIL_SIZE', 150);                               // Default thumbnail size in pixels
-define('ATOMIC_THUMBNAIL_CROP', true);                              // Crop thumbnails to exact size (true/false)
-define('ATOMIC_THUMBNAIL_QUALITY', 85);                             // Thumbnail quality (0-100)
-define('ATOMIC_IMAGE_SIZE_SMALL', 300);                             // Small image size in pixels
-define('ATOMIC_IMAGE_SIZE_MEDIUM', 600);                            // Medium image size in pixels
-define('ATOMIC_IMAGE_SIZE_LARGE', 1200);                            // Large image size in pixels
+define('ATOMIC_THUMBNAIL_SIZE', 150);
+define('ATOMIC_THUMBNAIL_CROP', true);
+define('ATOMIC_THUMBNAIL_QUALITY', 85);
+define('ATOMIC_IMAGE_SIZE_SMALL', 300);
+define('ATOMIC_IMAGE_SIZE_MEDIUM', 600);
+define('ATOMIC_IMAGE_SIZE_LARGE', 1200);

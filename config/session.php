@@ -7,7 +7,6 @@ return [
     'lifetime'        => 259200,         // 3 days
     'cookie'          => 'Atomic_Session',
     'kill_on_suspect' => true,
-    'redis_prefix'    => 'atomic.session.',
     'cookie_expire'   => 259200,
     'cookie_path'     => '/',
     'cookie_domain'   => '',
