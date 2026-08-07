@@ -4,10 +4,9 @@ namespace App\Codes;
 
 if (!defined('ATOMIC_START')) exit;
 
-use Engine\Atomic\Codes\Generic;
-
 class Code
 {
-    use Generic;
-    // Add application-specific error code traits here
+    // Application-specific error codes
+    public const PROFILE_INCOMPLETE = 'profile_incomplete';
+    public const SUBSCRIPTION_EXPIRED = 'subscription_expired';
 }

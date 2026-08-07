@@ -16,15 +16,16 @@ return [
     'name'         => 'Atomic',
     'key'          => '',           // APP_KEY from .env
     'uuid'         => '',           // APP_UUID from .env
+    'encryption_key' => '',         // APP_ENCRYPTION_KEY from .env
     'domain'       => '',           // DOMAIN from .env
     'timezone'     => 'UTC',
     'theme'        => 'default',
     'encoding'     => 'UTF-8',
     'language'     => 'en',
     'fallback'     => 'en',
-    'debug'        => true,
-    'debug_level'  => 'debug',
-    'escape'       => false,
+    'debug'        => false,
+    'debug_level'  => 'error',
+    'escape'       => true,
     'paths' => [
         'ui'                  => 'public/themes/',
         'temp'                => 'storage/framework/cache/data/',
@@ -41,7 +42,7 @@ return [
     'cors' => [
         'headers'     => 'Content-Type,Authorization',
         'origin'      => '*',
-        'credentials' => true,
+        'credentials' => false,
         'expose'      => 'Authorization',
         'ttl'         => 86400,
     ],
